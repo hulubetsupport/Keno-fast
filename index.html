@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Fast Keno - Master Edition</title>
+  <title>Fast Keno - Master Production Edition</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
       --bg-black: #05080a;
@@ -133,8 +135,9 @@
     .main-bet-btn {
       width: 100%; background: var(--btn-green); color: #000; font-size: 16px; font-weight: 900;
       border: none; border-radius: 4px; padding: 12px 0; cursor: pointer; text-transform: uppercase;
-      box-shadow: 0 0 15px rgba(0, 200, 83, 0.35); letter-spacing: 0.5px;
+      box-shadow: 0 0 15px rgba(0, 200, 83, 0.35); letter-spacing: 0.5px; transition: 0.2s;
     }
+    .main-bet-btn.closed { background: #374151; color: #9ca3af; cursor: not-allowed; box-shadow: none; }
 
     /* 5. Navigation Tabs */
     .tabs-bar { display: flex; background: #091013; border-top: 1px solid #16242a; border-bottom: 1px solid #16242a; }
@@ -174,7 +177,7 @@
     .res-balls-grid { flex: 1; display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; }
     .res-mini-ball { background: #16262e; text-align: center; border-radius: 2px; padding: 2px 0; font-size: 9px; font-weight: bold; }
 
-    /* Clean Win Banner */
+    /* Clean Floating Win Banner */
     .clean-win-banner {
       position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
       background: linear-gradient(135deg, #00c853, #00e676); color: #000; font-size: 15px; font-weight: 900;
@@ -211,7 +214,7 @@
 <div class="keno-wrapper">
   <!-- Clean Win Banner -->
   <div class="clean-win-banner" id="cleanWinBanner">
-    🎉 <span id="winAmountSpan">250.00</span> ETB Won!
+    🎉 <span id="winAmountSpan">0.00</span> ETB Won!
   </div>
 
   <!-- 1. Top Brand Header Bar -->
@@ -285,7 +288,7 @@
   <div class="controls-wrapper" id="controlsSection">
     <div class="stepper-row">
       <button class="ctrl-step-btn" onclick="stepBet(-1)">—</button>
-      <input type="number" id="betInput" class="bet-amt-val" value="4.00" step="1" min="1">
+      <input type="number" id="betInput" class="bet-amt-val" value="4.00" step="1" min="1" max="1000">
       <button class="ctrl-step-btn" onclick="stepBet(1)">+</button>
       <button class="quick-chip" onclick="multiplyBet(2)">X2</button>
       <button class="quick-chip" onclick="setMaxBet()">MAX</button>
@@ -309,7 +312,7 @@
     <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold; margin-bottom:6px;">
       <div>All <span style="color:var(--accent-green);" id="allBetsDynamicCount">351</span></div>
       <div style="color:var(--text-gray);">My Tickets <span style="color:#fff;" id="myTicketsCount">0</span></div>
-      <div style="color:var(--text-gray);">My Bets <span style="color:#fff;" id="myBetsCount">0</span></div>
+      <div style="color:var(--text-gray);">My Bets <span style="color:#fff;" id="myBetsCount">0</span> ETB</div>
     </div>
     <div id="myTicketsList"></div>
     <div id="liveTicketsFeed"></div>
@@ -333,14 +336,14 @@
     <div style="display:flex; gap:5px;"><div class="q-ball" style="background:#37474f;">13</div><div class="q-ball" style="background:#37474f;">51</div><div class="q-ball" style="background:#37474f;">64</div></div>
   </div>
 
-  <!-- LEADERS TAB (Dynamic Real + Top Winners) -->
+  <!-- LEADERS TAB (User IDs strictly) -->
   <div class="subview" id="viewLeaders">
     <div id="leadersListContainer">
-      <div class="ticket-row"><div class="ticket-user-line"><span>🥇 d***e</span> <span style="color:var(--accent-gold);">+4,500.00 ETB</span></div></div>
-      <div class="ticket-row"><div class="ticket-user-line"><span>🥈 y***j</span> <span style="color:var(--accent-gold);">+2,250.00 ETB</span></div></div>
-      <div class="ticket-row"><div class="ticket-user-line"><span>🥉 t***i</span> <span style="color:var(--accent-gold);">+1,800.00 ETB</span></div></div>
-      <div class="ticket-row"><div class="ticket-user-line"><span>4. k***b</span> <span style="color:var(--accent-green);">+1,200.00 ETB</span></div></div>
-      <div class="ticket-row"><div class="ticket-user-line"><span>5. a***m</span> <span style="color:var(--accent-green);">+950.00 ETB</span></div></div>
+      <div class="ticket-row"><div class="ticket-user-line"><span>🥇 ID: 589***21</span> <span style="color:var(--accent-gold);">+4,500.00 ETB</span></div></div>
+      <div class="ticket-row"><div class="ticket-user-line"><span>🥈 ID: 712***48</span> <span style="color:var(--accent-gold);">+2,250.00 ETB</span></div></div>
+      <div class="ticket-row"><div class="ticket-user-line"><span>🥉 ID: 941***04</span> <span style="color:var(--accent-gold);">+1,800.00 ETB</span></div></div>
+      <div class="ticket-row"><div class="ticket-user-line"><span>4. ID: 402***19</span> <span style="color:var(--accent-green);">+1,200.00 ETB</span></div></div>
+      <div class="ticket-row"><div class="ticket-user-line"><span>5. ID: 618***90</span> <span style="color:var(--accent-green);">+950.00 ETB</span></div></div>
     </div>
   </div>
 </div>
@@ -390,14 +393,26 @@
 </div>
 
 <script>
-  // Master API URL
-  const API_URL = "https://script.google.com/macros/s/AKfycbzCI7hG2Xaz7gEEfHmakGmk4Z2kiQ1hcIho6snlemPGMcIz10pMcEBPE5aP9sNNfYLf/exec";
+  // -------------------------------------------------------------
+  // 🚀 OFFICIAL PRODUCTION CONFIGURATION (RENDER + TELEGRAM)
+  // -------------------------------------------------------------
+  const RENDER_BASE_URL = "https://hulubet-server.onrender.com";
 
-  // Clean Win Popup Display
-  function triggerCleanWinBanner(amount) {
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
+  let telegramUser = tg?.initDataUnsafe?.user || { id: 589218392, first_name: "Player" };
+  const TELEGRAM_ID = telegramUser.id;
+
+  // Clean Toast Banner
+  function triggerCleanWin(msg) {
     const banner = document.getElementById("cleanWinBanner");
-    document.getElementById("winAmountSpan").innerText = Number(amount).toFixed(2);
+    document.getElementById("winAmountSpan").innerText = msg;
     banner.style.display = "block";
+    if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
     setTimeout(() => { banner.style.display = "none"; }, 3500);
   }
 
@@ -436,47 +451,64 @@
     }
   }
 
-  // Real Balance & Server Sync
-  let balance = parseFloat(localStorage.getItem("global_balance") || "0.00");
+  // -------------------------------------------------------------
+  // 🔐 REAL DATABASE SYNC (NO LOCAL BALANCE MOCKS)
+  // -------------------------------------------------------------
+  let realBalance = 0.00;
   let currentDrawId = 8950;
   let timerSeconds = 44;
   let isDrawingPhase = false;
+  let isBettingClosed = false; // Golden Rule #12: Late-Ticket Injection Guard
   let currentSelections = [];
   let myActiveTickets = [];
   let fullHistoryLog = [];
 
-  // Dynamic Bets & Rotating Demo Users Pool
   let allBetsCount = 345 + Math.floor(Math.random() * 15);
-  const DEMO_USER_NAMES = ["y***j", "d***e", "t***i", "a***m", "k***b", "s***r", "b***k", "m***e", "e***t", "f***a", "z***x", "w***q"];
+  const DEMO_USER_IDS = ["ID: 589***21", "ID: 712***48", "ID: 941***04", "ID: 402***19", "ID: 618***90", "ID: 331***77", "ID: 805***12"];
   let dynamicLiveTickets = [];
 
-  function updateBalanceDisplay() {
-    document.getElementById("userBalanceText").innerText = balance.toFixed(2);
-    localStorage.setItem("global_balance", balance.toFixed(2));
+  async function syncDatabaseBalance() {
     try {
-      if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: "BALANCE_UPDATE", newBalance: balance }, "*");
-      }
-    } catch(e) {}
-  }
-  updateBalanceDisplay();
+      const res = await fetch(`${RENDER_BASE_URL}/api/auth/sync`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-telegram-init-data": tg?.initData || ""
+        },
+        body: JSON.stringify({
+          telegram_id: TELEGRAM_ID,
+          username: telegramUser.username || null,
+          first_name: telegramUser.first_name || "Player"
+        })
+      });
 
-  // Fetch live server balance & user data
-  async function fetchServerUserBalance() {
-    try {
-      const res = await fetch(`${API_URL}?action=initUser&userId=589218392`).then(r => r.json());
-      if (res && res.balance !== undefined) {
-        balance = parseFloat(res.balance);
+      const data = await res.json();
+      if (data.success && data.user) {
+        realBalance = Number(parseFloat(data.user.balance).toFixed(2));
         updateBalanceDisplay();
       }
+    } catch(e) {
+      console.error("DB Sync Error:", e);
+    }
+  }
+
+  function updateBalanceDisplay() {
+    document.getElementById("userBalanceText").innerText = realBalance.toFixed(2);
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "BALANCE_UPDATE", newBalance: realBalance }, "*");
+      }
     } catch(e) {}
   }
-  fetchServerUserBalance();
+
+  syncDatabaseBalance();
 
   function notifyParentToOpenDeposit() {
     try {
       if (window.parent && window.parent !== window) {
         window.parent.postMessage({ type: "OPEN_DEPOSIT" }, "*");
+      } else {
+        triggerCleanWin("Insufficient Balance");
       }
     } catch(e) {}
   }
@@ -503,7 +535,7 @@
   }
 
   function toggleCell(num) {
-    if (isDrawingPhase) return;
+    if (isDrawingPhase || isBettingClosed) return;
     playSynth(800, 0.04);
     const idx = currentSelections.indexOf(num);
     if (idx > -1) currentSelections.splice(idx, 1);
@@ -535,6 +567,7 @@
   }
 
   function autoPick5() {
+    if (isDrawingPhase || isBettingClosed) return;
     clearGridSelection();
     playSynth(850, 0.06);
     while (currentSelections.length < 5) {
@@ -548,67 +581,118 @@
   function stepBet(v) {
     playSynth(600, 0.03);
     const el = document.getElementById("betInput");
-    const nextVal = Math.max(1, Number(el.value) + v);
-    el.value = Math.min(balance > 0 ? balance : 1000, nextVal).toFixed(2);
+    const nextVal = Math.max(1, Math.min(1000, Number(el.value) + v));
+    el.value = nextVal.toFixed(2);
   }
 
   function multiplyBet(f) {
     playSynth(600, 0.03);
     const el = document.getElementById("betInput");
-    const nextVal = Number(el.value) * f;
-    el.value = Math.min(balance > 0 ? balance : 1000, nextVal).toFixed(2);
+    const nextVal = Math.max(1, Math.min(1000, Number(el.value) * f));
+    el.value = nextVal.toFixed(2);
   }
 
   function setMaxBet() {
     playSynth(600, 0.03);
     const el = document.getElementById("betInput");
-    el.value = Math.max(1, Math.min(1000, balance)).toFixed(2);
+    el.value = Math.max(1, Math.min(1000, realBalance > 0 ? realBalance : 1000)).toFixed(2);
   }
 
-  function placeKenoBet() {
+  // -------------------------------------------------------------
+  // 💰 REAL ATOMIC BET PLACEMENT (ROW-LEVEL LOCKING)
+  // -------------------------------------------------------------
+  async function placeKenoBet() {
     if (isDrawingPhase) return;
-    if (currentSelections.length === 0) return;
-    if (myActiveTickets.length >= 10) return;
+    
+    // Golden Rule #12: Late-Ticket Injection Guard
+    if (isBettingClosed) {
+      triggerCleanWin("Betting Closed for this Round");
+      return;
+    }
+
+    if (currentSelections.length === 0) {
+      triggerCleanWin("Select at least 1 number");
+      return;
+    }
+    if (myActiveTickets.length >= 10) {
+      triggerCleanWin("Max 10 tickets per round");
+      return;
+    }
     
     const amt = Number(document.getElementById("betInput").value);
-    if (amt > balance) {
+    if (amt > 1000.00) {
+      triggerCleanWin("Max Bet limit is 1,000.00 ETB!");
+      return;
+    }
+
+    if (amt > realBalance) {
       notifyParentToOpenDeposit();
       return;
     }
 
     playSynth(900, 0.06);
-    balance -= amt;
-    updateBalanceDisplay();
 
-    const tIndex = myActiveTickets.length + 1;
-    const tObj = { id: "TKT-" + tIndex, num: tIndex, picks: [...currentSelections], amount: amt, drawId: currentDrawId, status: "Waiting" };
-    myActiveTickets.push(tObj);
+    try {
+      const res = await fetch(`${RENDER_BASE_URL}/api/bet/place`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          telegram_id: TELEGRAM_ID,
+          game: "KENO",
+          bet_amount: amt,
+          round_data: {
+            picks: [...currentSelections],
+            draw_id: currentDrawId
+          }
+        })
+      });
 
-    document.getElementById("myTicketsCount").innerText = myActiveTickets.length;
-    document.getElementById("myBetsCount").innerText = myActiveTickets.reduce((s, t) => s + t.amount, 0).toFixed(0);
+      const data = await res.json();
+      if (data.success) {
+        realBalance = Number(data.remaining_balance);
+        updateBalanceDisplay();
 
-    const slots = Array.from({length: 10}, (_, i) => tObj.picks[i] ? `<div class="ticket-slot" id="slot-${tObj.id}-${tObj.picks[i]}">${tObj.picks[i]}</div>` : `<div class="ticket-slot empty"></div>`).join('');
-    document.getElementById("myTicketsList").insertAdjacentHTML('beforeend', `
-      <div class="ticket-row" id="card-${tObj.id}">
-        <div class="ticket-user-line"><span>My Ticket ${tObj.num}</span> <span>ID: ${currentDrawId}</span></div>
-        <div class="ticket-numbers-grid">${slots}</div>
-        <div class="ticket-bottom-line"><span>Bet ${tObj.amount.toFixed(0)} ETB</span> <span class="status-waiting" id="status-${tObj.id}">Waiting</span></div>
-      </div>
-    `);
+        const tIndex = myActiveTickets.length + 1;
+        const tObj = {
+          id: "TKT-" + tIndex,
+          betId: data.bet_id,
+          num: tIndex,
+          picks: [...currentSelections],
+          amount: amt,
+          drawId: currentDrawId,
+          status: "Waiting"
+        };
+        myActiveTickets.push(tObj);
 
-    // Increment dynamic all bets counter
-    allBetsCount++;
-    document.getElementById("allBetsDynamicCount").innerText = allBetsCount;
+        document.getElementById("myTicketsCount").innerText = myActiveTickets.length;
+        document.getElementById("myBetsCount").innerText = myActiveTickets.reduce((s, t) => s + t.amount, 0).toFixed(0);
 
-    clearGridSelection();
+        const slots = Array.from({length: 10}, (_, i) => tObj.picks[i] ? `<div class="ticket-slot" id="slot-${tObj.id}-${tObj.picks[i]}">${tObj.picks[i]}</div>` : `<div class="ticket-slot empty"></div>`).join('');
+        document.getElementById("myTicketsList").insertAdjacentHTML('beforeend', `
+          <div class="ticket-row" id="card-${tObj.id}">
+            <div class="ticket-user-line"><span>My Ticket ${tObj.num}</span> <span>ID: ${currentDrawId}</span></div>
+            <div class="ticket-numbers-grid">${slots}</div>
+            <div class="ticket-bottom-line"><span>Bet ${tObj.amount.toFixed(0)} ETB</span> <span class="status-waiting" id="status-${tObj.id}">Waiting</span></div>
+          </div>
+        `);
+
+        allBetsCount++;
+        document.getElementById("allBetsDynamicCount").innerText = allBetsCount;
+        clearGridSelection();
+      } else {
+        triggerCleanWin(data.error || "Insufficient Balance");
+      }
+    } catch(err) {
+      triggerCleanWin("Connection error to server");
+    }
   }
 
   // -------------------------------------------------------------
-  // 🔄 DYNAMIC LIVE BETS & DEMO USERS ENGINE
+  // 🔄 DYNAMIC LIVE TICKETS (USER IDS STRICTLY)
   // -------------------------------------------------------------
   function generateRandomDemoTicket() {
-    const user = DEMO_USER_NAMES[Math.floor(Math.random() * DEMO_USER_NAMES.length)];
-    const pickCount = Math.floor(Math.random() * 5) + 3; // 3 to 7 picks
+    const user = DEMO_USER_IDS[Math.floor(Math.random() * DEMO_USER_IDS.length)];
+    const pickCount = Math.floor(Math.random() * 5) + 3;
     const picks = [];
     while (picks.length < pickCount) {
       const r = Math.floor(Math.random() * 80) + 1;
@@ -639,18 +723,24 @@
     }).join('');
   }
 
-  // Countdown & Dynamic All Bets Fluctuation Loop
+  // Countdown & Late-Ticket Gate (Golden Rule #12)
   setInterval(() => {
     if (!isDrawingPhase) {
       timerSeconds = Math.max(0, timerSeconds - 1);
       document.getElementById("timerDisplay").innerText = `00:${timerSeconds < 10 ? '0' : ''}${timerSeconds}`;
 
-      // Automatically fluctuate and increment All Bets counter
+      // Golden Rule #12: Close betting strictly at 5s remaining
+      if (timerSeconds <= 5 && !isBettingClosed) {
+        isBettingClosed = true;
+        const btn = document.getElementById("betActionBtn");
+        btn.classList.add("closed");
+        btn.innerText = "BETTING CLOSED";
+      }
+
       if (timerSeconds % 2 === 0) {
         allBetsCount += Math.floor(Math.random() * 3) + 1;
         document.getElementById("allBetsDynamicCount").innerText = allBetsCount;
 
-        // Add new incoming demo ticket occasionally
         if (dynamicLiveTickets.length < 7 && Math.random() < 0.6) {
           const newDemo = generateRandomDemoTicket();
           dynamicLiveTickets.unshift(newDemo);
@@ -686,7 +776,6 @@
         const isUserHit = myActiveTickets.some(t => t.picks.includes(b));
         document.getElementById("drawnBallsList").insertAdjacentHTML('beforeend', `<div class="q-ball ${isUserHit ? 'hit' : ''}">${b}</div>`);
 
-        // Highlight user ticket hits
         myActiveTickets.forEach(t => {
           if (t.picks.includes(b)) {
             const el = document.getElementById(`slot-${t.id}-${b}`);
@@ -694,7 +783,6 @@
           }
         });
 
-        // Highlight demo ticket hits live!
         dynamicLiveTickets.forEach(t => {
           if (t.picks.includes(b)) {
             const el = document.querySelector(`.demo-slot-${t.id}-${b}`);
@@ -723,25 +811,56 @@
     return [...guaranteedNearMiss, ...remaining.slice(0, 20 - guaranteedNearMiss.length)].sort(() => Math.random() - 0.5);
   }
 
-  function finalizeRound(drawn) {
+  // -------------------------------------------------------------
+  // 🏁 SETTLEMENT & REAL BACKEND WIN CREDIT (MAX PAYOUT CAP)
+  // -------------------------------------------------------------
+  async function finalizeRound(drawn) {
     let winTotal = 0;
-    myActiveTickets.forEach(t => {
+
+    for (const t of myActiveTickets) {
       const hits = t.picks.filter(n => drawn.includes(n)).length;
       const mult = (OFFICIAL_PAYTABLE[t.picks.length] && OFFICIAL_PAYTABLE[t.picks.length][hits]) ? OFFICIAL_PAYTABLE[t.picks.length][hits] : 0;
-      const win = t.amount * mult;
+      let win = Number((t.amount * mult).toFixed(2));
+      
+      // Golden Rule #5: Max Payout Cap (20,000 ETB)
+      if (win > 20000.00) win = 20000.00;
+
       const statusEl = document.getElementById(`status-${t.id}`);
 
       if (win > 0) {
         winTotal += win;
         if (statusEl) { statusEl.innerText = `WON +${win.toFixed(2)} ETB (${mult}x)`; statusEl.className = "status-won"; }
+        
+        // Settle real win on server
+        try {
+          await fetch(`${RENDER_BASE_URL}/api/bet/settle`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              bet_id: t.betId,
+              multiplier: mult,
+              won: true
+            })
+          });
+        } catch(e) {}
       } else if (statusEl) {
         statusEl.innerText = `LOST (${hits} hits)`; statusEl.className = "status-lost";
+        try {
+          await fetch(`${RENDER_BASE_URL}/api/bet/settle`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              bet_id: t.betId,
+              multiplier: 0,
+              won: false
+            })
+          });
+        } catch(e) {}
       }
 
       fullHistoryLog.unshift({ drawId: t.drawId, picks: t.picks, amount: t.amount, hits: hits, win: win, status: win > 0 ? 'WON' : 'LOST' });
-    });
+    }
 
-    // Evaluate demo tickets
     dynamicLiveTickets.forEach(t => {
       const hits = t.picks.filter(n => drawn.includes(n)).length;
       const mult = (OFFICIAL_PAYTABLE[t.picks.length] && OFFICIAL_PAYTABLE[t.picks.length][hits]) ? OFFICIAL_PAYTABLE[t.picks.length][hits] : 0;
@@ -758,9 +877,8 @@
 
     if (winTotal > 0) {
       playSynth(900, 0.25);
-      balance += winTotal;
-      updateBalanceDisplay();
-      triggerCleanWinBanner(winTotal);
+      syncDatabaseBalance();
+      triggerCleanWin(`${winTotal.toFixed(2)}`);
     }
 
     addResultCard(currentDrawId, drawn);
@@ -778,11 +896,16 @@
       document.getElementById("myTicketsList").innerHTML = "";
       document.getElementById("myTicketsCount").innerText = "0";
       document.getElementById("myBetsCount").innerText = "0";
+      
+      const btn = document.getElementById("betActionBtn");
+      btn.classList.remove("closed");
+      btn.innerText = "BET";
+      
       myActiveTickets = [];
       timerSeconds = 44;
       isDrawingPhase = false;
+      isBettingClosed = false;
 
-      // Re-seed All bets counter & demo tickets for new round
       allBetsCount = 330 + Math.floor(Math.random() * 25);
       document.getElementById("allBetsDynamicCount").innerText = allBetsCount;
       initInitialDemoTickets();
@@ -792,15 +915,15 @@
   function updateDynamicLeaders(userWin) {
     const list = document.getElementById("leadersListContainer");
     const topWinnings = [
-      { user: "d***e", win: 4500 + Math.floor(Math.random() * 500) },
-      { user: "y***j", win: 2250 + Math.floor(Math.random() * 300) },
-      { user: "t***i", win: 1800 + Math.floor(Math.random() * 200) },
-      { user: "k***b", win: 1200 + Math.floor(Math.random() * 150) },
-      { user: "a***m", win: 950 + Math.floor(Math.random() * 100) }
+      { user: "ID: 589***21", win: 4500 + Math.floor(Math.random() * 500) },
+      { user: "ID: 712***48", win: 2250 + Math.floor(Math.random() * 300) },
+      { user: "ID: 941***04", win: 1800 + Math.floor(Math.random() * 200) },
+      { user: "ID: 402***19", win: 1200 + Math.floor(Math.random() * 150) },
+      { user: "ID: 618***90", win: 950 + Math.floor(Math.random() * 100) }
     ];
 
     if (userWin > 500) {
-      topWinnings.unshift({ user: "You (My Ticket)", win: userWin });
+      topWinnings.unshift({ user: `ID: ${String(TELEGRAM_ID).substring(0, 3)}***${String(TELEGRAM_ID).slice(-2)}`, win: userWin });
     }
 
     list.innerHTML = topWinnings.slice(0, 5).map((w, idx) => `
