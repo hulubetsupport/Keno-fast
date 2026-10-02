@@ -1,959 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Fast Keno - Hulu Bet</title>
-  <style>
-    :root {
-      --bg-dark: #12181c;
-      --bg-surface: #172127;
-      --bg-panel: #1e2a32;
-      --border-panel: #2a3a45;
-      --border-light: rgba(255, 255, 255, 0.06);
-      --accent-green: #23784c;
-      --accent-green-bright: #3de089;
-      --accent-cyan: #00e5ff;
-      --accent-gold: #f5b041;
-      --text-white: #ffffff;
-      --text-muted: #8397a4;
-      --dot-red: #ff4757;
-      --dot-blue: #1e90ff;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-
-    html, body {
-      width: 100%;
-      min-height: 100vh;
-      background: var(--bg-dark);
-      color: #fff;
-      overflow-x: hidden;
-    }
-
-    .keno-wrapper {
-      width: 100%;
-      max-width: 100%;
-      min-height: 100vh;
-      background: var(--bg-dark);
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      padding-bottom: 30px;
-    }
-
-    .main-content-limiter {
-      width: 100%;
-      max-width: 720px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* 1. Header Bar */
-    header.brand-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 16px;
-      background: var(--bg-surface);
-      border-bottom: 1px solid var(--border-panel);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      width: 100%;
-    }
-    .brand-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .brand-logo {
-      font-size: 18px;
-      font-weight: 900;
-      font-style: italic;
-      line-height: 1;
-      letter-spacing: -0.5px;
-    }
-    .brand-logo .fast { color: #fff; }
-    .brand-logo .keno { color: var(--accent-green-bright); }
-
-    .header-pill {
-      background: #0d1317;
-      border: 1px solid var(--border-panel);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      padding: 4px 12px;
-      font-size: 12px;
-      gap: 8px;
-    }
-    .balance-val {
-      color: #ffe600;
-      font-weight: 800;
-    }
-    .pill-divider {
-      width: 1px;
-      height: 12px;
-      background: var(--border-panel);
-    }
-    .round-id {
-      color: var(--text-muted);
-      font-size: 11px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .verified-icon {
-      width: 13px;
-      height: 13px;
-      fill: var(--accent-green-bright);
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .icon-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 5px;
-    }
-    .icon-btn svg {
-      width: 19px;
-      height: 19px;
-      fill: currentColor;
-    }
-
-    /* 2. Sonar Radar Arena */
-    .radar-arena {
-      background: radial-gradient(circle at center, #1b2d35 0%, #131d22 65%, var(--bg-dark) 100%);
-      padding: 12px 16px;
-      position: relative;
-      border-bottom: 1px solid var(--border-panel);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 146px;
-      justify-content: center;
-      overflow: hidden;
-      width: 100%;
-    }
-    .sonar-ring {
-      position: absolute;
-      border-radius: 50%;
-      border: 1px dashed rgba(0, 229, 255, 0.12);
-      pointer-events: none;
-    }
-    .r1 { width: 90px; height: 90px; }
-    .r2 { width: 170px; height: 170px; }
-    .r3 { width: 260px; height: 260px; }
-
-    .radar-top-row {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      position: absolute;
-      top: 8px;
-      padding: 0 16px;
-      z-index: 3;
-    }
-    .rule-pill {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .rule-badge {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: #152026;
-      border: 1px solid var(--border-panel);
-      font-size: 10px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #cbd5e1;
-    }
-    .rule-badge.blue {
-      background: #007799;
-      color: #fff;
-    }
-    .radar-timer {
-      font-size: 20px;
-      font-weight: 900;
-      color: var(--accent-cyan);
-      letter-spacing: 1.5px;
-      text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
-    }
-    .radar-timer.live {
-      color: #ff4757;
-      animation: blink 0.8s infinite;
-    }
-
-    /* Selection View */
-    .selection-view {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      z-index: 2;
-    }
-    .choose-title {
-      font-size: 18px;
-      font-weight: 800;
-      color: #fff;
-    }
-    .choose-sub {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--accent-green-bright);
-      margin-top: 2px;
-    }
-    .possible-win-view {
-      display: none;
-      width: 100%;
-      padding: 0 8px;
-    }
-    .possible-win-header {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-    }
-    .possible-win-header span {
-      color: var(--accent-green-bright);
-      font-size: 15px;
-    }
-    .odds-row {
-      display: flex;
-      gap: 10px;
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    .odds-row .hl { color: #fff; font-weight: 700; }
-
-    .selected-rack {
-      display: flex;
-      gap: 4px;
-      justify-content: flex-start;
-      overflow-x: auto;
-      scrollbar-width: none;
-      width: 100%;
-    }
-    .selected-rack::-webkit-scrollbar { display: none; }
-    .rack-slot {
-      min-width: 26px;
-      height: 26px;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px dashed var(--border-panel);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      color: #fff;
-    }
-    .rack-slot.filled {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-panel);
-    }
-
-    /* 3D Live Draw View */
-    .draw-view {
-      display: none;
-      width: 100%;
-      flex-direction: column;
-      align-items: center;
-      z-index: 2;
-      padding: 10px 0;
-    }
-    .big-3d-ball {
-      width: 68px;
-      height: 68px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, #5ce1e6 0%, #0d47a1 65%, #001933 100%);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), inset 0 2px 6px rgba(255, 255, 255, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      font-weight: 900;
-      color: #fff;
-      margin-bottom: 10px;
-      animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .drawn-tray {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 4px;
-      padding: 0 6px;
-      max-width: 480px;
-    }
-    .mini-ball {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, #3a7bd5 0%, #16365c 65%, #0d1e33 100%);
-      font-size: 10px;
-      font-weight: 800;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
-      animation: popIn 0.3s ease;
-    }
-    .mini-ball.hit {
-      background: radial-gradient(circle at 35% 30%, #69f0ae 0%, #23784c 70%, #0a2e1b 100%);
-      color: #fff;
-      font-weight: 900;
-      box-shadow: 0 0 10px var(--accent-green-bright);
-    }
-
-    /* 3. Fluid 80 Grid */
-    .grid-section {
-      padding: 8px 12px;
-      width: 100%;
-    }
-    .keno-grid {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: clamp(3px, 1vw, 6px);
-      width: 100%;
-    }
-    .grid-cell {
-      background: #172127;
-      border: 1px solid var(--border-panel);
-      height: clamp(34px, 7vw, 48px);
-      border-radius: 4px;
-      font-size: clamp(12px, 2.5vw, 15px);
-      font-weight: 700;
-      color: #9cb1c1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      position: relative;
-      transition: transform 0.05s, background 0.1s;
-    }
-    .grid-cell:active { transform: scale(0.94); }
-    .grid-cell.selected {
-      background: var(--accent-green);
-      color: #fff;
-      font-weight: 900;
-      border-color: var(--accent-green-bright);
-      box-shadow: inset 0 0 8px rgba(61, 224, 137, 0.7);
-    }
-    .cell-dot {
-      position: absolute;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      top: 3px;
-    }
-    .dot-hot { right: 3px; background: var(--dot-red); box-shadow: 0 0 4px var(--dot-red); }
-    .dot-cold { left: 3px; background: var(--dot-blue); box-shadow: 0 0 4px var(--dot-blue); }
-
-    /* 4. Controls */
-    .controls-wrapper {
-      padding: 0 12px;
-      width: 100%;
-    }
-    .bet-stepper {
-      display: flex;
-      align-items: center;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-panel);
-      border-radius: 4px;
-      margin-bottom: 6px;
-      overflow: hidden;
-      width: 100%;
-    }
-    .ctrl-step-btn {
-      width: 44px;
-      height: 40px;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 19px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .ctrl-step-btn:active { background: rgba(255, 255, 255, 0.05); }
-    .bet-amt-val {
-      flex: 1;
-      text-align: center;
-      font-size: 16px;
-      font-weight: 800;
-      color: #fff;
-    }
-    .quick-chips {
-      display: flex;
-      border-left: 1px solid var(--border-panel);
-    }
-    .quick-chip {
-      background: var(--bg-panel);
-      border: none;
-      border-right: 1px solid var(--border-panel);
-      color: var(--accent-green-bright);
-      font-size: 11px;
-      font-weight: 800;
-      padding: 0 12px;
-      height: 40px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .quick-chip:last-child { border-right: none; color: var(--text-muted); }
-    .quick-chip:active { background: rgba(255, 255, 255, 0.08); }
-
-    .main-bet-btn {
-      width: 100%;
-      height: 46px;
-      background: linear-gradient(180deg, #24754a 0%, #1b5938 100%);
-      color: #fff;
-      font-size: 16px;
-      font-weight: 900;
-      letter-spacing: 0.8px;
-      border: 1px solid #3de089;
-      border-radius: 4px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
-      transition: filter 0.15s;
-    }
-    .main-bet-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      filter: grayscale(0.5);
-    }
-    .main-bet-btn.accepted {
-      background: #17422b;
-      border-color: #27a863;
-    }
-    .main-bet-btn svg { width: 18px; height: 18px; fill: #fff; }
-
-    /* 5. Navigation Tabs */
-    .tabs-bar {
-      display: flex;
-      background: var(--bg-surface);
-      border-top: 1px solid var(--border-panel);
-      border-bottom: 1px solid var(--border-panel);
-      margin-top: 12px;
-      width: 100%;
-    }
-    .tab-item {
-      flex: 1;
-      padding: 10px 0;
-      text-align: center;
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-muted);
-      cursor: pointer;
-      text-transform: uppercase;
-      border-bottom: 2px solid transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-    .tab-item.active {
-      color: var(--accent-green-bright);
-      border-bottom-color: var(--accent-green-bright);
-      background: rgba(35, 120, 76, 0.15);
-    }
-    .tab-item svg { width: 13px; height: 13px; fill: currentColor; }
-
-    /* Tab Contents */
-    .subview {
-      display: none;
-      padding: 10px 12px;
-      width: 100%;
-    }
-    .subview.active { display: block; }
-
-    .feed-counts-line {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-      padding: 0 2px;
-    }
-    .feed-counts-line strong { color: var(--accent-green-bright); }
-
-    .ticket-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      width: 100%;
-    }
-    .ticket-row {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-panel);
-      border-radius: 4px;
-      padding: 8px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .ticket-row.user-ticket {
-      border-color: var(--accent-green-bright);
-      background: #172a22;
-    }
-    .ticket-user-line {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      font-weight: bold;
-      color: var(--accent-green-bright);
-    }
-    .ticket-numbers-grid {
-      display: flex;
-      gap: 4px;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    .ticket-numbers-grid::-webkit-scrollbar { display: none; }
-    .ticket-slot {
-      width: 28px;
-      height: 26px;
-      background: #141c22;
-      border-radius: 3px;
-      font-size: 11px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      flex-shrink: 0;
-    }
-    .ticket-slot.empty { background: #10161a; }
-    .ticket-slot.hit {
-      background: var(--accent-green) !important;
-      color: #fff !important;
-      font-weight: 900;
-    }
-    .ticket-bottom-line {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-    .status-waiting { color: var(--accent-gold); font-weight: bold; }
-    .status-won { color: var(--accent-green-bright); font-weight: 900; }
-    .status-lost { color: #8899a6; }
-
-    /* Results Row */
-    .result-row-card {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-panel);
-      border-radius: 4px;
-      padding: 8px 10px;
-      margin-bottom: 6px;
-      display: flex;
-      gap: 10px;
-    }
-    .res-draw-col {
-      width: 90px;
-      border-right: 1px solid var(--border-panel);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .res-balls-grid {
-      flex: 1;
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 3px;
-    }
-    .res-mini-ball {
-      background: #141d24;
-      text-align: center;
-      border-radius: 2px;
-      padding: 3px 0;
-      font-size: 10px;
-      font-weight: bold;
-      color: #cbd5e1;
-    }
-
-    /* Statistics */
-    .stats-scroll-list {
-      max-height: 450px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-    .stat-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 5px;
-      font-size: 11px;
-    }
-    .stat-num { width: 22px; text-align: right; color: var(--text-muted); font-weight: bold; }
-    .stat-bar-outer {
-      flex: 1;
-      height: 6px;
-      background: var(--border-panel);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .stat-bar-fill { height: 100%; background: var(--accent-green-bright); }
-    .stat-count { width: 24px; color: var(--text-muted); font-size: 10px; }
-
-    /* Leaders */
-    .table-leaders {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-    .table-leaders th {
-      text-align: left;
-      color: var(--text-muted);
-      padding: 8px 6px;
-      border-bottom: 1px solid var(--border-panel);
-    }
-    .table-leaders td {
-      padding: 8px 6px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    }
-
-    /* Simple Toast: "won 25" style */
-    .toast-overlay {
-      position: fixed;
-      top: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 32px);
-      max-width: 440px;
-      z-index: 1000;
-      display: none;
-      animation: slideDown 0.25s ease-out;
-    }
-    .toast-box {
-      border-radius: 6px;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 13px;
-      font-weight: 700;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-    }
-    .toast-box.error {
-      background: #471919;
-      border: 1px solid #732626;
-      color: #ffd8d8;
-    }
-    .toast-box.success {
-      background: #143825;
-      border: 1px solid #23633e;
-      color: #d2ffe2;
-    }
-    .toast-content {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .toast-close {
-      background: transparent;
-      border: none;
-      color: inherit;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-    }
-
-    /* Rules Modal */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 999;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-    }
-    .modal-container {
-      width: 100%;
-      max-width: 480px;
-      max-height: 85vh;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-panel);
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border-panel);
-    }
-    .modal-nav { display: flex; gap: 6px; }
-    .modal-nav-btn {
-      background: var(--bg-panel);
-      border: none;
-      color: var(--text-muted);
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .modal-nav-btn.active {
-      background: var(--accent-green);
-      color: #fff;
-    }
-    .modal-body {
-      padding: 14px;
-      overflow-y: auto;
-      font-size: 12px;
-      color: #cbd5e1;
-      line-height: 1.5;
-    }
-    .paytable-grid-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 8px;
-      font-size: 10px;
-      text-align: center;
-    }
-    .paytable-grid-table th, .paytable-grid-table td {
-      border: 1px solid var(--border-panel);
-      padding: 5px 2px;
-    }
-    .paytable-grid-table th { background: #131f24; color: var(--accent-green-bright); }
-
-    @keyframes popIn { 0% { transform: scale(0.3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    @keyframes slideDown { 0% { transform: translate(-50%, -15px); opacity: 0; } 100% { transform: translate(-50%, 0); opacity: 1; } }
-    @keyframes blink { 50% { opacity: 0.3; } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Fast Keno - Hulu Bet</title>
+<style>
+:root{--bg-dark:#12181c;--bg-surface:#172127;--bg-panel:#1e2a32;--border-panel:#2a3a45;--accent-green:#23784c;--accent-green-bright:#3de089;--accent-cyan:#00e5ff;--accent-gold:#f5b041;--text-muted:#8397a4;--dot-red:#ff4757;--dot-blue:#1e90ff}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{width:100%;min-height:100vh;background:var(--bg-dark);color:#fff;overflow-x:hidden}
+.keno-wrapper{width:100%;min-height:100vh;background:var(--bg-dark);display:flex;flex-direction:column;padding-bottom:30px}
+.main-content-limiter{width:100%;max-width:720px;margin:0 auto;display:flex;flex-direction:column}
+header.brand-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--bg-surface);border-bottom:1px solid var(--border-panel);position:sticky;top:0;z-index:50}
+.brand-group{display:flex;align-items:center;gap:10px}
+.brand-logo{font-size:18px;font-weight:900;font-style:italic;line-height:1;letter-spacing:-.5px}.brand-logo .keno{color:var(--accent-green-bright)}
+.header-pill{background:#0d1317;border:1px solid var(--border-panel);border-radius:16px;display:flex;align-items:center;padding:4px 12px;font-size:12px;gap:8px}
+.balance-val{color:#ffe600;font-weight:800}.pill-divider{width:1px;height:12px;background:var(--border-panel)}
+.round-id{color:var(--text-muted);font-size:11px}
+.header-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{background:transparent;border:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:5px}
+.icon-btn svg{width:19px;height:19px;fill:currentColor}
+.radar-arena{background:radial-gradient(circle at center,#1b2d35 0%,#131d22 65%,var(--bg-dark) 100%);padding:12px 16px;position:relative;border-bottom:1px solid var(--border-panel);display:flex;flex-direction:column;align-items:center;min-height:170px;justify-content:center;overflow:hidden;width:100%}
+.sonar-ring{position:absolute;border-radius:50%;border:1px dashed rgba(0,229,255,.12);pointer-events:none}
+.r1{width:90px;height:90px}.r2{width:170px;height:170px}.r3{width:260px;height:260px}
+.radar-top-row{width:100%;display:flex;justify-content:space-between;align-items:center;font-size:11px;position:absolute;top:8px;padding:0 16px;z-index:3}
+.rule-pill{display:flex;align-items:center;gap:4px}
+.rule-badge{width:22px;height:22px;border-radius:50%;background:#152026;border:1px solid var(--border-panel);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;color:#cbd5e1}
+.rule-badge.blue{background:#007799;color:#fff}
+.radar-timer{font-size:18px;font-weight:900;color:var(--accent-cyan);letter-spacing:1.5px;text-shadow:0 0 10px rgba(0,229,255,.4)}
+.radar-timer.live{color:#ff4757;animation:blink .8s infinite}
+.selection-view{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;z-index:2;margin-top:14px}
+.choose-title{font-size:18px;font-weight:800}.choose-sub{font-size:13px;font-weight:700;color:var(--accent-green-bright);margin-top:2px}
+.possible-win-view{display:none;width:100%;padding:0 8px}
+.possible-win-header{font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:4px}
+.possible-win-header span{color:var(--accent-green-bright);font-size:15px}
+.odds-row{display:flex;gap:10px;font-size:11px;color:var(--text-muted);margin-bottom:6px;flex-wrap:wrap}.odds-row .hl{color:#fff;font-weight:700}
+.selected-rack{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;width:100%}.selected-rack::-webkit-scrollbar{display:none}
+.rack-slot{min-width:26px;height:26px;border-radius:4px;background:rgba(255,255,255,.05);border:1px dashed var(--border-panel);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.rack-slot.filled{background:var(--bg-panel);border:1px solid var(--border-panel)}
+.draw-view{display:none;width:100%;flex-direction:column;align-items:center;z-index:2;padding:22px 0 8px}
+.big-3d-ball{width:68px;height:68px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#5ce1e6 0%,#0d47a1 65%,#001933 100%);box-shadow:0 4px 20px rgba(0,0,0,.7),inset 0 2px 6px rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;margin-bottom:10px}
+.drawn-tray{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;padding:0 6px;max-width:480px}
+.mini-ball{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3a7bd5 0%,#16365c 65%,#0d1e33 100%);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 2px rgba(255,255,255,.5);animation:popIn .3s ease}
+.mini-ball.hit{background:radial-gradient(circle at 35% 30%,#69f0ae 0%,#23784c 70%,#0a2e1b 100%);font-weight:900;box-shadow:0 0 10px var(--accent-green-bright)}
+.draw-result{min-height:22px;margin-top:8px;font-size:15px;font-weight:800;text-align:center}.res-win{color:var(--accent-green-bright)}.res-lose{color:var(--text-muted)}
+.skip-btn{position:absolute;right:14px;bottom:10px;background:rgba(0,0,0,.45);border:1px solid var(--border-panel);color:#cbd5e1;font-size:11px;font-weight:800;padding:5px 12px;border-radius:14px;cursor:pointer;z-index:4;display:none}
+.grid-section{padding:8px 12px;width:100%}
+.keno-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:clamp(3px,1vw,6px);width:100%}
+.grid-cell{background:#172127;border:1px solid var(--border-panel);height:clamp(34px,7vw,48px);border-radius:4px;font-size:clamp(12px,2.5vw,15px);font-weight:700;color:#9cb1c1;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:transform .05s,background .1s}
+.grid-cell:active{transform:scale(.94)}
+.grid-cell.selected{background:var(--accent-green);color:#fff;font-weight:900;border-color:var(--accent-green-bright);box-shadow:inset 0 0 8px rgba(61,224,137,.7)}
+.grid-cell.drawn{border-color:var(--accent-cyan);box-shadow:inset 0 0 8px rgba(0,229,255,.45);color:#fff}
+.grid-cell.selected.drawn{background:linear-gradient(180deg,#2fbf73,#1b8a52);border-color:#ffe600;box-shadow:0 0 10px rgba(255,230,0,.6)}
+.cell-dot{position:absolute;width:5px;height:5px;border-radius:50%;top:3px}
+.dot-hot{right:3px;background:var(--dot-red);box-shadow:0 0 4px var(--dot-red)}.dot-cold{left:3px;background:var(--dot-blue);box-shadow:0 0 4px var(--dot-blue)}
+.controls-wrapper{padding:0 12px;width:100%}
+.bet-stepper{display:flex;align-items:center;background:var(--bg-surface);border:1px solid var(--border-panel);border-radius:4px;margin-bottom:6px;overflow:hidden;width:100%}
+.ctrl-step-btn{width:44px;height:40px;background:transparent;border:none;color:var(--text-muted);font-size:19px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.bet-amt-val{flex:1;text-align:center;font-size:16px;font-weight:800}
+.quick-chips{display:flex;border-left:1px solid var(--border-panel)}
+.quick-chip{background:var(--bg-panel);border:none;border-right:1px solid var(--border-panel);color:var(--accent-green-bright);font-size:11px;font-weight:800;padding:0 11px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.quick-chip:last-child{border-right:none;color:var(--text-muted)}
+.main-bet-btn{width:100%;height:46px;background:linear-gradient(180deg,#24754a 0%,#1b5938 100%);color:#fff;font-size:16px;font-weight:900;letter-spacing:.8px;border:1px solid #3de089;border-radius:4px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.4)}
+.main-bet-btn:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(.5)}
+.tabs-bar{display:flex;background:var(--bg-surface);border-top:1px solid var(--border-panel);border-bottom:1px solid var(--border-panel);margin-top:12px;width:100%}
+.tab-item{flex:1;padding:10px 0;text-align:center;font-size:10px;font-weight:800;color:var(--text-muted);cursor:pointer;text-transform:uppercase;border-bottom:2px solid transparent;display:flex;align-items:center;justify-content:center;gap:3px}
+.tab-item.active{color:var(--accent-green-bright);border-bottom-color:var(--accent-green-bright);background:rgba(35,120,76,.15)}
+.subview{display:none;padding:10px 12px;width:100%}.subview.active{display:block}
+.feed-counts-line{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:8px;padding:0 2px}
+.feed-counts-line strong{color:var(--accent-green-bright)}
+.ticket-list{display:flex;flex-direction:column;gap:6px;width:100%}
+.ticket-row{background:var(--bg-panel);border:1px solid var(--border-panel);border-radius:4px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.ticket-row.user-ticket{border-color:var(--accent-green-bright);background:#172a22}
+.ticket-user-line{display:flex;justify-content:space-between;font-size:12px;font-weight:bold;color:var(--accent-green-bright)}
+.ticket-numbers-grid{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}.ticket-numbers-grid::-webkit-scrollbar{display:none}
+.ticket-slot{width:28px;height:26px;background:#141c22;border-radius:3px;font-size:11px;font-weight:bold;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ticket-slot.hit{background:var(--accent-green)!important;font-weight:900}
+.ticket-bottom-line{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)}
+.status-won{color:var(--accent-green-bright);font-weight:900}.status-lost{color:#8899a6}
+.empty-note{font-size:12px;color:var(--text-muted);text-align:center;padding:20px}
+.note{font-size:11px;color:var(--text-muted);margin:6px 0;line-height:1.4}
+.result-row-card{background:var(--bg-panel);border:1px solid var(--border-panel);border-radius:4px;padding:8px 10px;margin-bottom:6px;display:flex;gap:10px}
+.res-draw-col{width:90px;border-right:1px solid var(--border-panel);display:flex;flex-direction:column;justify-content:center}
+.res-balls-grid{flex:1;display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+.res-mini-ball{background:#141d24;text-align:center;border-radius:2px;padding:3px 0;font-size:10px;font-weight:bold;color:#cbd5e1}
+.res-mini-ball.hit{background:var(--accent-green);color:#fff}
+.stats-scroll-list{max-height:450px;overflow-y:auto;padding-right:4px}
+.stat-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:11px}
+.stat-num{width:22px;text-align:right;color:var(--text-muted);font-weight:bold}
+.stat-bar-outer{flex:1;height:6px;background:var(--border-panel);border-radius:3px;overflow:hidden}.stat-bar-fill{height:100%;background:var(--accent-green-bright)}
+.stat-count{width:24px;color:var(--text-muted);font-size:10px}
+.table-leaders{width:100%;border-collapse:collapse;font-size:12px}
+.table-leaders th{text-align:left;color:var(--text-muted);padding:8px 6px;border-bottom:1px solid var(--border-panel)}
+.table-leaders td{padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.03)}
+.toast-overlay{position:fixed;top:16px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:440px;z-index:1000;display:none}
+.toast-box{border-radius:6px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.6)}
+.toast-box.error{background:#471919;border:1px solid #732626;color:#ffd8d8}.toast-box.success{background:#143825;border:1px solid #23633e;color:#d2ffe2}
+.toast-close{background:transparent;border:none;color:inherit;cursor:pointer;font-size:16px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:999;display:none;align-items:center;justify-content:center;padding:14px}
+.modal-container{width:100%;max-width:480px;max-height:85vh;background:var(--bg-surface);border:1px solid var(--border-panel);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border-panel)}
+.modal-nav{display:flex;gap:6px}
+.modal-nav-btn{background:var(--bg-panel);border:none;color:var(--text-muted);padding:6px 12px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer}
+.modal-nav-btn.active{background:var(--accent-green);color:#fff}
+.modal-body{padding:14px;overflow:auto;font-size:12px;color:#cbd5e1;line-height:1.5}
+.paytable-grid-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:10px;text-align:center}
+.paytable-grid-table th,.paytable-grid-table td{border:1px solid var(--border-panel);padding:5px 2px}
+.paytable-grid-table th{background:#131f24;color:var(--accent-green-bright)}
+@keyframes popIn{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes blink{50%{opacity:.3}}
+.ic{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px}
+.icon-btn svg.ic{width:19px;height:19px;fill:none}.tab-item svg.ic{width:13px;height:13px;fill:none}
+</style>
 </head>
 <body>
-
 <div class="keno-wrapper">
+  <div class="toast-overlay" id="toast-overlay"><div class="toast-box" id="toast-box"><span id="toast-message"></span><button class="toast-close" onclick="hideToast()"><svg class="ic" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div></div>
 
-  <!-- SIMPLE TOAST -->
-  <div class="toast-overlay" id="toast-overlay">
-    <div class="toast-box" id="toast-box">
-      <div class="toast-content">
-        <svg id="toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"></svg>
-        <span id="toast-message">won 25</span>
-      </div>
-      <button class="toast-close" onclick="hideToast()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-        </svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- 1. Header Bar -->
   <header class="brand-bar">
     <div class="brand-group">
-      <button class="icon-btn" onclick="exitToLobby()" title="Back to Lobby">
-        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-      </button>
-      <div class="brand-logo">
-        <span class="fast">FAST</span><span class="keno">KENO</span>
-      </div>
+      <button class="icon-btn" onclick="exitToLobby()" title="Back to Lobby"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+      <div class="brand-logo"><span>FAST</span><span class="keno">KENO</span></div>
     </div>
-
     <div class="header-pill">
-      <span class="balance-val"><span id="lbl-balance">0.00</span> ETB</span>
+      <span class="balance-val"><span id="lbl-balance">--</span> ETB</span>
       <div class="pill-divider"></div>
-      <span class="round-id">
-        <span>ID:</span>
-        <strong id="lbl-round-id" style="color:#fff;">45556</strong>
-        <svg class="verified-icon" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-        </svg>
-      </span>
+      <span class="round-id">Last bet: <strong id="lbl-last-bet" style="color:#fff;">—</strong></span>
     </div>
-
     <div class="header-actions">
-      <button class="icon-btn" onclick="openRulesModal()" title="Rules & Paytable">
-        <svg viewBox="0 0 24 24"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
-      </button>
-      <button class="icon-btn" onclick="toggleAudio()" title="Sound Toggle" id="btn-sound">
-        <svg id="svg-sound-muted" viewBox="0 0 24 24" fill="none" stroke="#ff4757" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/></svg>
-      </button>
+      <button class="icon-btn" onclick="openRulesModal()" title="Rules & Paytable"><svg viewBox="0 0 24 24"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg></button>
+      <button class="icon-btn" onclick="toggleAudio()" id="btn-sound" style="color:#ff4757"><svg class="ic" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg></button>
     </div>
   </header>
 
   <div class="main-content-limiter">
-
-    <!-- 2. Sonar Radar Arena -->
     <section class="radar-arena">
-      <div class="sonar-ring r1"></div>
-      <div class="sonar-ring r2"></div>
-      <div class="sonar-ring r3"></div>
-
+      <div class="sonar-ring r1"></div><div class="sonar-ring r2"></div><div class="sonar-ring r3"></div>
       <div class="radar-top-row">
-        <div class="rule-pill">
-          <div class="rule-badge">80</div>
-          <div class="rule-badge blue">10</div>
-        </div>
-        <div class="radar-timer" id="stage-timer">00:54</div>
-        <div class="rule-pill" style="cursor:pointer;" onclick="openRulesModal()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
+        <div class="rule-pill"><div class="rule-badge">80</div><div class="rule-badge blue">20</div></div>
+        <div class="radar-timer" id="stage-timer">READY</div>
+        <div class="rule-pill" style="cursor:pointer;" onclick="openRulesModal()">?</div>
       </div>
-
-      <!-- PICK ARENA VIEW -->
       <div class="selection-view" id="selection-view">
-        <div id="default-banner" style="text-align:center;">
-          <div class="choose-title">Choose 10 numbers</div>
-          <div class="choose-sub">From 1 to 80</div>
-        </div>
-
+        <div id="default-banner" style="text-align:center;"><div class="choose-title">Choose 1 to 10 numbers</div><div class="choose-sub">From 1 to 80</div></div>
         <div class="possible-win-view" id="possible-win-view">
           <div class="possible-win-header">Possible win <span id="lbl-possible-win">0</span> ETB</div>
           <div class="odds-row" id="odds-row-container"></div>
           <div class="selected-rack" id="selected-rack"></div>
         </div>
       </div>
-
-      <!-- 3D LIVE DRAW ARENA VIEW -->
       <div class="draw-view" id="draw-view">
         <div class="big-3d-ball" id="current-drawn-ball">?</div>
         <div class="drawn-tray" id="drawn-tray"></div>
+        <div class="draw-result" id="draw-result"></div>
       </div>
+      <button class="skip-btn" id="skip-btn" onclick="skipDraw()">SKIP <svg class="ic" viewBox="0 0 24 24" style="width:12px;height:12px;vertical-align:-2px"><polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/></svg></button>
     </section>
 
-    <!-- 3. Fluid 80 Grid -->
-    <section class="grid-section" id="grid-container-section">
-      <div class="keno-grid" id="keno-grid"></div>
-    </section>
+    <section class="grid-section" id="grid-container-section"><div class="keno-grid" id="keno-grid"></div></section>
 
-    <!-- 4. Controls -->
     <section class="controls-wrapper" id="controls-section">
       <div class="bet-stepper">
-        <button class="ctrl-step-btn" onclick="adjustBet(-1)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13H5v-2h14v2z"/></svg>
-        </button>
+        <button class="ctrl-step-btn" onclick="adjustBet(-1)">−</button>
         <div class="bet-amt-val" id="lbl-bet-amount">4.00</div>
-        <button class="ctrl-step-btn" onclick="adjustBet(1)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-        </button>
+        <button class="ctrl-step-btn" onclick="adjustBet(1)">+</button>
         <div class="quick-chips">
+          <button class="quick-chip" onclick="multiplyBet(0.5)">½</button>
           <button class="quick-chip" onclick="multiplyBet(2)">X2</button>
           <button class="quick-chip" onclick="setMaxBet()">MAX</button>
-          <button class="quick-chip" onclick="autoPick(5)" title="Auto Pick 5">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
-          </button>
-          <button class="quick-chip" onclick="clearPicks()" title="Clear Selection">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>
-          </button>
+          <button class="quick-chip" onclick="autoPick(5)" title="Auto pick 5"><svg class="ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></button>
+          <button class="quick-chip" onclick="clearPicks()" title="Clear"><svg class="ic" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
         </div>
       </div>
-
-      <button class="main-bet-btn" id="btn-bet" onclick="placeKenoTicket()">
-        <span id="btn-bet-label">BET</span>
-      </button>
+      <button class="main-bet-btn" id="btn-bet" onclick="placeKenoTicket()"><span id="btn-bet-label">BET</span></button>
     </section>
 
-    <!-- 5. Navigation Tabs -->
     <nav class="tabs-bar">
-      <div class="tab-item active" onclick="switchTab('game', this)">
-        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        <span>GAME</span>
-      </div>
-      <div class="tab-item" onclick="switchTab('history', this)">
-        <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-        <span>HISTORY</span>
-      </div>
-      <div class="tab-item" onclick="switchTab('results', this)">
-        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-        <span>RESULTS</span>
-      </div>
-      <div class="tab-item" onclick="switchTab('statistics', this)">
-        <svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>
-        <span>STATISTICS</span>
-      </div>
-      <div class="tab-item" onclick="switchTab('leaders', this)">
-        <svg viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-1h14v1z"/></svg>
-        <span>LEADERS</span>
-      </div>
+      <div class="tab-item active" onclick="switchTab('game',this)"><svg class="ic" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>GAME</span></div>
+      <div class="tab-item" onclick="switchTab('history',this)"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>HISTORY</span></div>
+      <div class="tab-item" onclick="switchTab('results',this)"><svg class="ic" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>RESULTS</span></div>
+      <div class="tab-item" onclick="switchTab('statistics',this)"><svg class="ic" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>STATS</span></div>
+      <div class="tab-item" onclick="switchTab('leaders',this)"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg><span>BIG WINS</span></div>
     </nav>
 
-    <!-- SUBVIEW: GAME -->
     <section class="subview active" id="view-game">
       <div class="feed-counts-line">
-        <span>All <strong id="lbl-all-count">42</strong></span>
-        <span>My Tickets <strong id="lbl-my-tickets-count">0</strong>/10</span>
-        <span>My Bets <strong id="lbl-my-bets-total">0</strong> ETB</span>
+        <span>Bets <strong id="lbl-s-bets">0</strong></span>
+        <span>Staked <strong id="lbl-s-stake">0</strong> ETB</span>
+        <span>Won <strong id="lbl-s-won">0</strong> ETB</span>
       </div>
-
-      <!-- Active Tickets Feed -->
       <div class="ticket-list" id="my-tickets-container"></div>
-      <div class="ticket-list" id="live-dynamic-tickets-container" style="margin-top: 6px;"></div>
     </section>
-
-    <!-- SUBVIEW: HISTORY -->
-    <section class="subview" id="view-history">
-      <div class="ticket-list" id="history-container">
-        <div style="font-size:12px; color:var(--text-muted); text-align:center; padding:20px;">No betting history found</div>
-      </div>
-    </section>
-
-    <!-- SUBVIEW: RESULTS -->
-    <section class="subview" id="view-results">
-      <div class="ticket-list" id="results-container"></div>
-    </section>
-
-    <!-- SUBVIEW: STATISTICS -->
+    <section class="subview" id="view-history"><div class="ticket-list" id="history-container"></div></section>
+    <section class="subview" id="view-results"><div class="ticket-list" id="results-container"></div></section>
     <section class="subview" id="view-statistics">
-      <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Top Frequency (Last 100 Rounds)</div>
+      <div class="note" id="stats-label"></div>
       <div class="stats-scroll-list" id="stats-bars-container"></div>
+      <div class="note">Every draw is independent. Hot (red) and cold (blue) numbers are only a record of past draws and do not predict future ones.</div>
     </section>
-
-    <!-- SUBVIEW: LEADERS -->
     <section class="subview" id="view-leaders">
-      <table class="table-leaders">
-        <thead>
-          <tr><th>#</th><th>User</th><th>Bet</th><th>Win</th></tr>
-        </thead>
-        <tbody id="leaders-tbody"></tbody>
-      </table>
+      <table class="table-leaders"><thead><tr><th>#</th><th>Player</th><th>Game</th><th>Win</th></tr></thead><tbody id="leaders-tbody"></tbody></table>
     </section>
-
   </div>
-
 </div>
 
-<!-- RULES & PAYTABLE MODAL -->
 <div class="modal-overlay" id="rules-modal">
   <div class="modal-container">
     <div class="modal-header">
@@ -961,977 +210,298 @@
         <button class="modal-nav-btn active" id="modal-nav-rules" onclick="switchModalTab('rules')">RULES</button>
         <button class="modal-nav-btn" id="modal-nav-paytable" onclick="switchModalTab('paytable')">PAYTABLE</button>
       </div>
-      <button class="icon-btn" onclick="closeRulesModal()">
-        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
+      <button class="icon-btn" onclick="closeRulesModal()"><svg class="ic" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body" id="modal-content"></div>
   </div>
 </div>
 
 <script>
-/**
- * Hulu Bet Mandatory Boilerplate & Integration Contract
- */
+// ============================================================================
+// FAST KENO client. The SERVER draws the 20 numbers and pays. This page only
+// sends your picks, animates the draw the server returned, and shows history.
+// ============================================================================
 const API = "https://hulubet-server.onrender.com";
-let INIT_DATA = "", serverBalance = 0, ready = false;
+let INIT_DATA = "", USER_ID = "", ready = false, serverBalance = 0, shownBalance = 0;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 async function api(path, opts = {}) {
   try {
-    const r = await fetch(API + path, {
-      ...opts,
-      headers: {
-        'Content-Type': 'application/json',
-        'x-telegram-init-data': INIT_DATA
-      }
-    });
+    const r = await fetch(API + path, { ...opts, headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': INIT_DATA } });
     return await r.json();
-  } catch (e) {
-    return { success: false, message: 'Connection problem' };
-  }
+  } catch (e) { return { success: false, message: 'Connection problem' }; }
 }
-
-const postParent = m => {
-  try { parent.postMessage(m, '*'); } catch (e) {}
-};
+const postParent = m => { try { parent.postMessage(m, '*'); } catch (e) {} };
 
 addEventListener('message', e => {
   if (e.source !== parent) return;
   const d = e.data || {};
-  if (d.type === 'INIT' && d.initData) {
-    INIT_DATA = d.initData;
-    ready = true;
-    refreshBalance();
-    initPaytable();
-  }
+  if (d.type === 'INIT' && d.initData) { INIT_DATA = d.initData; USER_ID = String(d.userId || ''); ready = true; loadHist(); renderAll(); refreshBalance(); }
   if (d.type === 'UPDATE_BALANCE') refreshBalance();
 });
-
 postParent({ type: 'GAME_READY' });
+setTimeout(() => { if (!ready) showToast('Open this game from the Hulu Bet app in Telegram', 'error'); }, 4000);
 
 async function refreshBalance() {
   const d = await api('/api/user/init');
-  if (d && d.success) {
-    serverBalance = d.balance;
-    showBalance();
-  }
+  if (d && d.success && !isDrawing) { serverBalance = d.balance; shownBalance = d.balance; showBalance(false); }
+}
+function showBalance(post) {
+  $('lbl-balance').textContent = Number(shownBalance).toFixed(2);
+  if (post) postParent({ type: 'BALANCE_UPDATE', newBalance: serverBalance });
 }
 
-function showBalance() {
-  document.getElementById('lbl-balance').textContent = Number(serverBalance || 0).toFixed(2);
-  postParent({ type: 'BALANCE_UPDATE', newBalance: serverBalance });
+// ---------------- state ----------------
+const MIN_BET = 1, MAX_BET = 1000, MAX_PICKS = 10, MAX_PAYOUT = 20000;
+let currentBetAmount = 4, selectedNumbers = new Set(), lastDrawn = new Set();
+let isDrawing = false, busy = false, soundEnabled = false, paytable = null, skipFn = null;
+let hist = [], sessionTickets = [], sess = { bets: 0, stake: 0, won: 0 };
+let hotSet = new Set(), coldSet = new Set();
+
+// ---------------- local history (per player, this device only) ----------------
+const SKEY = () => 'hulu_keno_v2_' + USER_ID;
+function loadHist() { try { const h = JSON.parse(localStorage.getItem(SKEY()) || '[]'); hist = Array.isArray(h) ? h : []; } catch (e) { hist = []; } }
+function saveHist() { try { localStorage.setItem(SKEY(), JSON.stringify(hist.slice(0, 100))); } catch (e) {} }
+
+// ---------------- paytable (always from the server) ----------------
+const C = (n, k) => { if (k < 0 || k > n) return 0; let r = 1; for (let i = 1; i <= k; i++) r = r * (n - k + i) / i; return r; };
+function rtpFor(k) {
+  const t = paytable && paytable[String(k)]; if (!t) return null;
+  const tot = C(80, 20); let e = 0;
+  for (let h = 0; h <= k; h++) e += C(k, h) * C(80 - k, 20 - h) / tot * (t[h] || 0);
+  return e * 100;
+}
+async function loadPaytable() {
+  const d = await api('/api/keno/paytable');
+  if (d && d.success && d.paytable) { paytable = d.paytable; updatePossibleWin(); updateBetBtn(); }
+  else setTimeout(loadPaytable, 4000);
 }
 
-/**
- * 24/7 SYNCHRONIZED CLOCK CONFIGURATION
- */
-const BET_WINDOW = 60;
-const DRAW_WINDOW = 20;
-const TOTAL_CYCLE = 80;
-
-const MIN_BET = 1;
-const MAX_BET = 1000;
-const MAX_PICKS = 10;
-const MAX_MY_TICKETS = 10;
-
-let currentBetAmount = 4.00;
-let selectedNumbers = new Set();
-let isDrawingPhase = false;
-let isRequestInFlight = false;
-let soundEnabled = false;
-
-let myActiveTickets = [];
-let fullHistory = JSON.parse(localStorage.getItem('hulu_keno_history') || '[]');
-
-// Rolling Draw History for Real Statistics (Last 100 rounds)
-let drawHistoryStats = JSON.parse(localStorage.getItem('hulu_keno_stats') || 'null');
-if (!drawHistoryStats || drawHistoryStats.length === 0) {
-  drawHistoryStats = [];
-  // Seed with realistic base historical data
-  for (let r = 0; r < 20; r++) {
-    const p = Array.from({ length: 80 }, (_, i) => i + 1).sort(() => Math.random() - 0.5).slice(0, 20);
-    drawHistoryStats.push(p);
-  }
-}
-
-let hotNumbersSet = new Set();
-let coldNumbersSet = new Set();
-
-const PLAYER_NAMES = ["d***a", "s***k", "y***o", "b***w", "m***e", "t***i", "k***b", "a***m", "09***1", "h***7", "w***j", "9***x"];
-const STAKE_AMOUNTS = [20, 50, 100, 200, 300, 500];
-let dynamicLiveTickets = [];
-let dynamicAllCount = 42;
-let simTicketIndex = 100;
-
-let paytable = {
-  "1": [0, 3.5],
-  "2": [0, 1, 10],
-  "3": [0, 0, 2, 50],
-  "4": [0, 0, 1.5, 10, 80],
-  "5": [0, 0, 1, 3, 30, 150],
-  "6": [0, 0, 0, 2, 15, 60, 500],
-  "7": [0, 1, 0, 2, 4, 20, 80, 1000],
-  "8": [0, 1, 0, 0, 5, 15, 50, 200, 2000],
-  "9": [0, 2, 0, 0, 2, 10, 25, 125, 1000, 5000],
-  "10": [0, 2, 0, 0, 0, 5, 30, 100, 300, 2000, 10000]
-};
-
-// Web Audio API
+// ---------------- audio ----------------
 let audioCtx = null;
-function getAudioContext() {
-  if (!audioCtx) {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (Ctx) audioCtx = new Ctx();
-  }
-  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
-}
-
-function playSynth(freq = 600, duration = 0.06, type = 'sine') {
+function playSynth(freq = 600, duration = .06, type = 'sine') {
   if (!soundEnabled) return;
   try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    gain.gain.setValueAtTime(0.06, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
+    const Ctx = window.AudioContext || window.webkitAudioContext; if (!audioCtx && Ctx) audioCtx = new Ctx();
+    if (!audioCtx) return; if (audioCtx.state === 'suspended') audioCtx.resume();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    g.gain.setValueAtTime(.06, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + duration);
+    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + duration);
   } catch (e) {}
 }
+function toggleAudio() { soundEnabled = !soundEnabled; const b = $('btn-sound'); b.innerHTML = soundEnabled ? '<svg class="ic" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>' : '<svg class="ic" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>'; b.style.color = soundEnabled ? 'var(--accent-green-bright)' : '#ff4757'; }
 
-function toggleAudio() {
-  soundEnabled = !soundEnabled;
-  const btn = document.getElementById('btn-sound');
-  if (soundEnabled) {
-    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>`;
-    btn.style.color = 'var(--accent-green-bright)';
-  } else {
-    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#ff4757" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/></svg>`;
-    btn.style.color = '#ff4757';
-  }
-}
-
-/**
- * 24/7 GLOBAL CLOCK & ROUND DETERMINATION
- */
-function getGlobalRoundInfo() {
-  const nowSec = Math.floor(Date.now() / 1000);
-  const roundId = 45556 + Math.floor(nowSec / TOTAL_CYCLE);
-  const cycleSec = nowSec % TOTAL_CYCLE;
-  return { roundId, cycleSec };
-}
-
-function computeBaseRoundBets(rId) {
-  return 35 + ((rId * 13) % 450);
-}
-
-/**
- * DYNAMIC HOT & COLD NUMBERS & REAL STATISTICS
- */
-function updateDynamicHotColdAndStats() {
-  const counts = {};
-  for (let i = 1; i <= 80; i++) counts[i] = 0;
-
-  // Count occurrences across draw history
-  drawHistoryStats.forEach(draw => {
-    draw.forEach(num => {
-      if (counts[num] !== undefined) counts[num]++;
-    });
-  });
-
-  // Sort numbers by frequency
-  const sorted = Object.keys(counts).map(Number).sort((a, b) => counts[b] - counts[a]);
-
-  // Top 5 are HOT, bottom 5 are COLD
-  hotNumbersSet = new Set(sorted.slice(0, 5));
-  coldNumbersSet = new Set(sorted.slice(75, 80));
-
-  // Update Statistics UI
-  renderLiveStatistics(counts, sorted);
-
-  // Re-render dots on grid
-  updateGridHotColdDots();
-}
-
-function renderLiveStatistics(counts, sorted) {
-  const container = document.getElementById('stats-bars-container');
-  if (!container) return;
-  container.innerHTML = '';
-
-  const maxCount = Math.max(...Object.values(counts), 1);
-
-  sorted.forEach(num => {
-    const count = counts[num];
-    const pct = Math.min(100, Math.round((count / maxCount) * 100));
-    const row = document.createElement('div');
-    row.className = 'stat-row';
-    row.innerHTML = `
-      <div class="stat-num">${num}</div>
-      <div class="stat-bar-outer"><div class="stat-bar-fill" style="width:${pct}%;"></div></div>
-      <div class="stat-count">${count}</div>
-    `;
-    container.appendChild(row);
-  });
-}
-
-function updateGridHotColdDots() {
-  for (let i = 1; i <= 80; i++) {
-    const cell = document.getElementById(`cell-${i}`);
-    if (cell) {
-      const existingDot = cell.querySelector('.cell-dot');
-      if (existingDot) existingDot.remove();
-
-      if (hotNumbersSet.has(i)) {
-        const dot = document.createElement('span');
-        dot.className = 'cell-dot dot-hot';
-        cell.appendChild(dot);
-      } else if (coldNumbersSet.has(i)) {
-        const dot = document.createElement('span');
-        dot.className = 'cell-dot dot-cold';
-        cell.appendChild(dot);
-      }
-    }
-  }
-}
-
-/**
- * INITIALIZATION
- */
-async function initPaytable() {
-  const d = await api('/api/keno/paytable');
-  if (d && d.success && d.paytable) {
-    paytable = d.paytable;
-    updatePossibleWin();
-  }
-}
-
+// ---------------- grid + picks ----------------
 function buildGrid() {
-  const grid = document.getElementById('keno-grid');
-  grid.innerHTML = '';
+  const grid = $('keno-grid'); grid.innerHTML = '';
   for (let i = 1; i <= 80; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'grid-cell';
-    cell.id = `cell-${i}`;
-    cell.textContent = i;
-    cell.onclick = () => togglePick(i);
-    grid.appendChild(cell);
+    const c = document.createElement('div'); c.className = 'grid-cell'; c.id = 'cell-' + i; c.textContent = i; c.onclick = () => togglePick(i); grid.appendChild(c);
   }
-  updateGridHotColdDots();
 }
-
-function togglePick(num) {
-  if (isDrawingPhase) return;
-  playSynth(550, 0.03);
-
-  if (selectedNumbers.has(num)) {
-    selectedNumbers.delete(num);
-  } else {
-    if (selectedNumbers.size >= MAX_PICKS) {
-      showToast('Maximum 10 numbers allowed', 'error');
-      return;
-    }
-    selectedNumbers.add(num);
-  }
-  syncGridSelections();
-  updatePossibleWin();
+function syncGrid() {
+  for (let i = 1; i <= 80; i++) { const el = $('cell-' + i); if (el) { el.classList.toggle('selected', selectedNumbers.has(i)); el.classList.toggle('drawn', lastDrawn.has(i)); } }
 }
-
-function syncGridSelections() {
+function updateDots() {
   for (let i = 1; i <= 80; i++) {
-    const el = document.getElementById(`cell-${i}`);
-    if (el) el.classList.toggle('selected', selectedNumbers.has(i));
+    const cell = $('cell-' + i); if (!cell) continue;
+    const old = cell.querySelector('.cell-dot'); if (old) old.remove();
+    const cls = hotSet.has(i) ? 'dot-hot' : coldSet.has(i) ? 'dot-cold' : null;
+    if (cls) { const d = document.createElement('span'); d.className = 'cell-dot ' + cls; cell.appendChild(d); }
   }
 }
-
-function clearPicks() {
-  if (isDrawingPhase) return;
-  selectedNumbers.clear();
-  syncGridSelections();
-  updatePossibleWin();
+function pickChanged() { if (arenaMode !== 'select') showArena('select'); syncGrid(); updatePossibleWin(); updateBetBtn(); }
+function togglePick(n) {
+  if (isDrawing) return; playSynth(550, .03);
+  if (selectedNumbers.has(n)) selectedNumbers.delete(n);
+  else { if (selectedNumbers.size >= MAX_PICKS) return showToast('Maximum 10 numbers', 'error'); selectedNumbers.add(n); }
+  pickChanged();
 }
-
+function clearPicks() { if (isDrawing) return; selectedNumbers.clear(); pickChanged(); }
 function autoPick(count = 5) {
-  if (isDrawingPhase) return;
-  clearPicks();
-  playSynth(750, 0.05);
-
-  const pool = Array.from({ length: 80 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-  pool.slice(0, count).forEach(n => selectedNumbers.add(n));
-
-  syncGridSelections();
-  updatePossibleWin();
+  if (isDrawing) return; selectedNumbers.clear(); playSynth(750, .05);
+  const pool = Array.from({ length: 80 }, (_, i) => i + 1);
+  for (let i = 79; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  pool.slice(0, count).forEach(n => selectedNumbers.add(n)); pickChanged();
 }
-
 function updatePossibleWin() {
-  const defBanner = document.getElementById('default-banner');
-  const winBanner = document.getElementById('possible-win-view');
-  const oddsRow = document.getElementById('odds-row-container');
-  const rack = document.getElementById('selected-rack');
-  const winVal = document.getElementById('lbl-possible-win');
-
-  const count = selectedNumbers.size;
-  if (count === 0) {
-    defBanner.style.display = 'block';
-    winBanner.style.display = 'none';
-    return;
-  }
-
-  defBanner.style.display = 'none';
-  winBanner.style.display = 'block';
-
-  const oddsTable = paytable[String(count)] || [];
-  const maxM = oddsTable.length > 0 ? oddsTable[oddsTable.length - 1] : 0;
-  winVal.textContent = (maxM * currentBetAmount).toFixed(0);
-
-  oddsRow.innerHTML = '';
-  const matchRow = document.createElement('div');
-  matchRow.innerHTML = `<span style="margin-right:4px;">Match</span>`;
-  const paysRow = document.createElement('div');
-  paysRow.innerHTML = `<span style="margin-right:4px;">Pays</span>`;
-
-  for (let h = 1; h <= count; h++) {
-    const mult = oddsTable[h] !== undefined ? oddsTable[h] : 0;
-    if (mult > 0) {
-      matchRow.innerHTML += `<span class="hl"> ${h} </span>`;
-      paysRow.innerHTML += `<span class="hl"> x${mult} </span>`;
-    }
-  }
-  oddsRow.appendChild(matchRow);
-  oddsRow.appendChild(paysRow);
-
-  rack.innerHTML = '';
-  const picksArr = Array.from(selectedNumbers);
-  for (let i = 0; i < MAX_PICKS; i++) {
-    const slot = document.createElement('div');
-    slot.className = 'rack-slot';
-    if (picksArr[i] !== undefined) {
-      slot.classList.add('filled');
-      slot.textContent = picksArr[i];
-    }
-    rack.appendChild(slot);
-  }
+  const def = $('default-banner'), win = $('possible-win-view'), count = selectedNumbers.size;
+  if (count === 0 || !paytable) { def.style.display = 'block'; win.style.display = 'none'; return; }
+  def.style.display = 'none'; win.style.display = 'block';
+  const t = paytable[String(count)] || [], maxM = t.length ? t[t.length - 1] : 0;
+  $('lbl-possible-win').textContent = Math.min(MAX_PAYOUT, maxM * currentBetAmount).toFixed(0);
+  let match = '<span>Match</span>', pays = '<span>Pays</span>';
+  for (let h = 1; h <= count; h++) if ((t[h] || 0) > 0) { match += `<span class="hl"> ${h} </span>`; pays += `<span class="hl"> x${t[h]} </span>`; }
+  const row = $('odds-row-container'); row.innerHTML = `<div>${match}</div><div>${pays}</div>`;
+  const rack = $('selected-rack'); rack.innerHTML = ''; const arr = [...selectedNumbers].sort((a, b) => a - b);
+  for (let i = 0; i < MAX_PICKS; i++) { const s = document.createElement('div'); s.className = 'rack-slot'; if (arr[i] !== undefined) { s.classList.add('filled'); s.textContent = arr[i]; } rack.appendChild(s); }
 }
 
-/**
- * BET STEPPER
- */
-function adjustBet(d) {
-  if (isDrawingPhase) return;
-  playSynth(450, 0.02);
-  let v = currentBetAmount + d;
-  if (v < MIN_BET) v = MIN_BET;
-  if (v > MAX_BET) v = MAX_BET;
-  currentBetAmount = v;
-  renderBetDisplay();
+// ---------------- bet amount ----------------
+function setBet(v) { v = Math.round(v * 100) / 100; currentBetAmount = Math.min(MAX_BET, Math.max(MIN_BET, v)); renderBetDisplay(); }
+function adjustBet(d) { if (isDrawing) return; playSynth(450, .02); setBet(currentBetAmount + d); }
+function multiplyBet(m) { if (isDrawing) return; playSynth(500, .02); setBet(m < 1 ? Math.floor(currentBetAmount * m) : currentBetAmount * m); }
+function setMaxBet() { if (isDrawing) return; setBet(Math.min(MAX_BET, Math.floor(serverBalance) || MIN_BET)); }
+function renderBetDisplay() { $('lbl-bet-amount').textContent = currentBetAmount.toFixed(2); updatePossibleWin(); }
+function updateBetBtn() {
+  $('btn-bet').disabled = busy || isDrawing || selectedNumbers.size === 0 || !paytable;
+  $('btn-bet-label').textContent = busy ? 'PLACING…' : 'BET';
 }
 
-function multiplyBet(m) {
-  if (isDrawingPhase) return;
-  playSynth(500, 0.02);
-  let v = currentBetAmount * m;
-  if (v > MAX_BET) v = MAX_BET;
-  currentBetAmount = v;
-  renderBetDisplay();
+// ---------------- arena ----------------
+let arenaMode = 'select';
+function showArena(mode) {
+  arenaMode = mode;
+  $('selection-view').style.display = mode === 'select' ? 'flex' : 'none';
+  $('draw-view').style.display = mode === 'select' ? 'none' : 'flex';
+  if (mode === 'select') { lastDrawn = new Set(); syncGrid(); $('stage-timer').textContent = 'READY'; $('stage-timer').classList.remove('live'); $('skip-btn').style.display = 'none'; }
 }
 
-function setMaxBet() {
-  if (isDrawingPhase) return;
-  currentBetAmount = MAX_BET;
-  renderBetDisplay();
-}
-
-function renderBetDisplay() {
-  document.getElementById('lbl-bet-amount').textContent = currentBetAmount.toFixed(2);
-  updatePossibleWin();
-}
-
-/**
- * PLACE TICKET
- */
+// ---------------- place a bet ----------------
 async function placeKenoTicket() {
-  if (isDrawingPhase || isRequestInFlight) return;
+  if (isDrawing || busy) return;
+  if (!ready) return showToast('Open this game from the Hulu Bet app', 'error');
+  if (!paytable) return showToast('Loading game data, try again in a moment', 'error');
+  if (selectedNumbers.size === 0) return showToast('Choose at least 1 number', 'error');
+  if (serverBalance < currentBetAmount) { showToast('Not enough balance for this bet', 'error'); postParent({ type: 'OPEN_DEPOSIT' }); return; }
 
-  if (selectedNumbers.size === 0) {
-    showToast('Choose at least 1 number', 'error');
+  busy = true; updateBetBtn();
+  const picks = [...selectedNumbers].sort((a, b) => a - b), amount = currentBetAmount, before = serverBalance;
+  const res = await api('/api/bet/play', { method: 'POST', body: JSON.stringify({ gameName: 'KenoFast', betAmount: amount, clientData: { picks } }) });
+  const drawn = res && res.visualOutcome && res.visualOutcome.drawnNumbers;
+  if (!res || !res.success || !Array.isArray(drawn) || drawn.length !== 20) {
+    busy = false; updateBetBtn();
+    showToast((res && res.message) || 'Bet failed', 'error');
+    refreshBalance();                       // in case the reply was lost after the server accepted the bet
     return;
   }
-  if (myActiveTickets.length >= MAX_MY_TICKETS) {
-    showToast('Maximum 10 tickets per round', 'error');
-    return;
-  }
-  if (serverBalance < currentBetAmount) {
-    showToast('Not enough balance for this bet', 'error');
-    postParent({ type: 'OPEN_DEPOSIT' });
-    return;
-  }
-
-  isRequestInFlight = true;
-  const btn = document.getElementById('btn-bet');
-  btn.disabled = true;
-  btn.classList.add('accepted');
-  btn.innerHTML = `
-    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-    <span>BET ACCEPTED</span>
-  `;
-
-  postParent({ type: 'BET_STARTED' });
-
-  const { roundId } = getGlobalRoundInfo();
-
-  // Authoritative server call
-  const res = await api('/api/bet/play', {
-    method: 'POST',
-    body: JSON.stringify({
-      gameName: "KenoFast",
-      betAmount: currentBetAmount,
-      clientData: {
-        picks: Array.from(selectedNumbers)
-      }
-    })
-  });
-
-  if (!res || !res.success) {
-    isRequestInFlight = false;
-    btn.disabled = false;
-    btn.classList.remove('accepted');
-    btn.innerHTML = `<span>BET</span>`;
-    postParent({ type: 'BET_ENDED' });
-    showToast(res.message || 'Bet placement failed', 'error');
-    return;
-  }
-
-  if (res.newBalance !== undefined) {
-    serverBalance = res.newBalance;
-    showBalance();
-  }
-
-  playSynth(850, 0.08);
-
-  const tktIndex = myActiveTickets.length + 1;
-  const ticketObj = {
-    id: `usertkt_${Date.now()}_${tktIndex}`,
-    ticketNumber: tktIndex,
-    picks: Array.from(selectedNumbers),
-    amount: currentBetAmount,
-    roundId: roundId,
-    status: 'Waiting',
-    serverRes: res
-  };
-
-  myActiveTickets.push(ticketObj);
-  saveActiveTicketsToStorage();
-  renderActiveUserTickets();
-
-  dynamicAllCount++;
-  document.getElementById('lbl-all-count').textContent = dynamicAllCount;
-
-  isRequestInFlight = false;
-  btn.disabled = false;
-  btn.classList.remove('accepted');
-  btn.innerHTML = `<span>BET</span>`;
-
-  clearPicks();
+  isDrawing = true; busy = false; updateBetBtn();
+  serverBalance = res.newBalance;           // the real balance already includes the result...
+  shownBalance = before - amount;           // ...but we only show it after the draw, so the reveal is not spoiled
+  showBalance(false);
+  const hits = picks.filter(n => drawn.includes(n)).length;
+  const t = { id: res.betId, time: Date.now(), picks, amount, drawn, hits, win: Number(res.payout) || 0, mult: Number(res.multiplier) || 0 };
+  $('lbl-last-bet').textContent = String(t.id).slice(-6);
+  await playDraw(t);
+  finishTicket(t);
 }
 
-function saveActiveTicketsToStorage() {
-  localStorage.setItem('hulu_keno_active_tickets', JSON.stringify(myActiveTickets));
-}
-
-function loadPersistedActiveTickets(currentRId) {
-  const saved = localStorage.getItem('hulu_keno_active_tickets');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      myActiveTickets = parsed.filter(t => t.roundId === currentRId);
-      renderActiveUserTickets();
-    } catch (e) {}
-  }
-}
-
-// Clean user tickets: "My Ticket 1" only
-function renderActiveUserTickets() {
-  const container = document.getElementById('my-tickets-container');
-  container.innerHTML = '';
-  document.getElementById('lbl-my-tickets-count').textContent = myActiveTickets.length;
-  const totalWager = myActiveTickets.reduce((acc, t) => acc + t.amount, 0);
-  document.getElementById('lbl-my-bets-total').textContent = totalWager.toFixed(0);
-
-  myActiveTickets.forEach((t) => {
-    const slots = Array.from({ length: 10 }, (_, i) => {
-      const p = t.picks[i];
-      return p !== undefined 
-        ? `<div class="ticket-slot" id="uslot_${t.id}_${p}">${p}</div>` 
-        : `<div class="ticket-slot empty"></div>`;
-    }).join('');
-
-    const card = document.createElement('div');
-    card.className = 'ticket-row user-ticket';
-    card.id = `trow_${t.id}`;
-    card.innerHTML = `
-      <div class="ticket-user-line">
-        <span>My Ticket ${t.ticketNumber}</span>
-      </div>
-      <div class="ticket-numbers-grid">${slots}</div>
-      <div class="ticket-bottom-line">
-        <span>Bet ${t.amount.toFixed(0)} ETB</span>
-        <span class="status-waiting" id="status_${t.id}">${t.status}</span>
-      </div>
-    `;
-    container.appendChild(card);
+function playDraw(t) {
+  return new Promise(resolve => {
+    $('grid-container-section').style.display = 'none'; $('controls-section').style.display = 'none';
+    showArena('draw'); $('draw-result').textContent = ''; $('drawn-tray').innerHTML = '';
+    $('stage-timer').classList.add('live'); $('skip-btn').style.display = 'block';
+    const big = $('current-drawn-ball'), tray = $('drawn-tray'), pickSet = new Set(t.picks);
+    let i = 0, fast = false; skipFn = () => { fast = true; };
+    const step = () => {
+      if (i >= 20) { skipFn = null; resolve(); return; }
+      const b = t.drawn[i], hit = pickSet.has(b);
+      big.textContent = b; big.style.animation = 'none'; void big.offsetWidth; big.style.animation = 'popIn .3s cubic-bezier(.175,.885,.32,1.275)';
+      const m = document.createElement('div'); m.className = 'mini-ball' + (hit ? ' hit' : ''); m.textContent = b; tray.appendChild(m);
+      playSynth(hit ? 880 : 300 + i * 15, .07);
+      i++; $('stage-timer').textContent = i + ' / 20';
+      setTimeout(step, fast ? 0 : 260);
+    };
+    step();
   });
 }
+function skipDraw() { if (skipFn) skipFn(); }
 
-/**
- * OTHER PLAYERS TICKETS (Using Safe Integer IDs: No querySelector SyntaxErrors)
- */
-function createRealisticPlayerTicket() {
-  simTicketIndex++;
-  const name = PLAYER_NAMES[Math.floor(Math.random() * PLAYER_NAMES.length)];
-  const pickCount = Math.floor(Math.random() * 4) + 3;
-  const pool = Array.from({ length: 80 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-  const picks = pool.slice(0, pickCount);
-  const amt = STAKE_AMOUNTS[Math.floor(Math.random() * STAKE_AMOUNTS.length)];
-  return {
-    id: `sim_${simTicketIndex}`,
-    user: name,
-    picks: picks,
-    amount: amt,
-    status: 'Waiting'
-  };
+function finishTicket(t) {
+  shownBalance = serverBalance; showBalance(true);
+  lastDrawn = new Set(t.drawn); isDrawing = false; updateBetBtn();
+  $('grid-container-section').style.display = 'block'; $('controls-section').style.display = 'block';
+  syncGrid(); $('skip-btn').style.display = 'none';
+  $('stage-timer').classList.remove('live'); $('stage-timer').textContent = 'DONE';
+  $('current-drawn-ball').textContent = t.hits;
+  $('draw-result').innerHTML = t.win > 0
+    ? `<span class="res-win">WIN +${t.win.toFixed(2)} ETB (x${t.mult})</span>`
+    : `<span class="res-lose">${t.hits} hit${t.hits === 1 ? '' : 's'} · no win</span>`;
+  sess.bets++; sess.stake += t.amount; sess.won += t.win;
+  sessionTickets.unshift(t); sessionTickets = sessionTickets.slice(0, 10);
+  hist.unshift(t); hist = hist.slice(0, 100); saveHist();
+  if (t.win > 0) { playSynth(880, .25, 'triangle'); showToast(`You won ${t.win.toFixed(2)} ETB`, 'success'); }
+  renderAll();
 }
 
-function initDynamicPlayerFeed() {
-  dynamicLiveTickets = [
-    createRealisticPlayerTicket(),
-    createRealisticPlayerTicket(),
-    createRealisticPlayerTicket()
-  ];
-  renderDynamicFeed();
+// ---------------- lists ----------------
+function ticketCard(t, detailed) {
+  const dr = new Set(t.drawn || []);
+  const slots = Array.from({ length: 10 }, (_, i) => t.picks[i] !== undefined ? `<div class="ticket-slot${dr.has(t.picks[i]) ? ' hit' : ''}">${t.picks[i]}</div>` : '<div class="ticket-slot" style="opacity:.3"></div>').join('');
+  const res = t.win > 0 ? `<span class="status-won">WON +${t.win.toFixed(2)} ETB</span>` : '<span class="status-lost">No win</span>';
+  const when = new Date(t.time).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return `<div class="ticket-row user-ticket"><div class="ticket-user-line"><span>${detailed ? esc(String(t.id)) : 'Ticket ' + esc(String(t.id).slice(-6))}</span><span style="color:var(--text-muted);font-weight:400">${when}</span></div>
+    <div class="ticket-numbers-grid">${slots}</div><div class="ticket-bottom-line"><span>Bet ${Number(t.amount).toFixed(2)} ETB · ${t.hits} hit${t.hits === 1 ? '' : 's'}</span>${res}</div></div>`;
 }
-
-function renderDynamicFeed() {
-  const container = document.getElementById('live-dynamic-tickets-container');
-  container.innerHTML = dynamicLiveTickets.map(t => {
-    const slots = Array.from({ length: 10 }, (_, i) => {
-      const p = t.picks[i];
-      return p !== undefined 
-        ? `<div class="ticket-slot" id="dslot_${t.id}_${p}">${p}</div>` 
-        : `<div class="ticket-slot empty"></div>`;
-    }).join('');
-
-    return `
-      <div class="ticket-row" id="prow_${t.id}">
-        <div class="ticket-user-line">
-          <span>${t.user}</span>
-        </div>
-        <div class="ticket-numbers-grid">${slots}</div>
-        <div class="ticket-bottom-line">
-          <span>Bet ${t.amount} ETB</span>
-          <span class="status-waiting" id="dstatus_${t.id}">${t.status}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
+function renderSession() {
+  $('lbl-s-bets').textContent = sess.bets; $('lbl-s-stake').textContent = sess.stake.toFixed(0); $('lbl-s-won').textContent = sess.won.toFixed(0);
+  $('my-tickets-container').innerHTML = sessionTickets.length ? sessionTickets.map(t => ticketCard(t, false)).join('') : '<div class="empty-note">Pick your numbers and press BET</div>';
 }
-
-/**
- * 24/7 CONTINUOUS GLOBAL TIMER LOOP
- */
-let lastCycleState = 'betting';
-let activeDrawRunning = false;
-
-setInterval(() => {
-  const { roundId, cycleSec } = getGlobalRoundInfo();
-  document.getElementById('lbl-round-id').textContent = roundId;
-
-  if (cycleSec < BET_WINDOW) {
-    // BETTING PHASE
-    isDrawingPhase = false;
-    activeDrawRunning = false;
-
-    // Grid is visible
-    document.getElementById('grid-container-section').style.display = 'block';
-    document.getElementById('controls-section').style.display = 'block';
-    document.getElementById('draw-view').style.display = 'none';
-    document.getElementById('selection-view').style.display = 'flex';
-
-    const remSec = BET_WINDOW - cycleSec;
-    const timerEl = document.getElementById('stage-timer');
-    timerEl.classList.remove('live');
-    timerEl.textContent = `00:${remSec < 10 ? '0' : ''}${remSec}`;
-
-    if (lastCycleState === 'drawing') {
-      lastCycleState = 'betting';
-      dynamicAllCount = computeBaseRoundBets(roundId);
-      document.getElementById('lbl-all-count').textContent = dynamicAllCount;
-      myActiveTickets = [];
-      localStorage.removeItem('hulu_keno_active_tickets');
-      renderActiveUserTickets();
-      initDynamicPlayerFeed();
-      document.getElementById('btn-bet').disabled = false;
-    }
-
-    if (remSec % 2 === 0) {
-      dynamicAllCount += Math.floor(Math.random() * 3) + 1;
-      document.getElementById('lbl-all-count').textContent = dynamicAllCount;
-
-      if (dynamicLiveTickets.length < 8 && Math.random() < 0.6) {
-        dynamicLiveTickets.unshift(createRealisticPlayerTicket());
-        renderDynamicFeed();
-      }
-    }
-  } else {
-    // 20-BALL DRAW PHASE
-    isDrawingPhase = true;
-    lastCycleState = 'drawing';
-
-    const timerEl = document.getElementById('stage-timer');
-    timerEl.textContent = 'LIVE';
-    timerEl.classList.add('live');
-
-    // 80 NUMBERS GRID DISAPPEARS COMPLETELY DURING 20-BALL DRAW
-    document.getElementById('grid-container-section').style.display = 'none';
-    document.getElementById('controls-section').style.display = 'none';
-    document.getElementById('selection-view').style.display = 'none';
-    document.getElementById('draw-view').style.display = 'flex';
-
-    if (!activeDrawRunning) {
-      activeDrawRunning = true;
-      execute20BallDraw(roundId);
-    }
-  }
-}, 1000);
-
-/**
- * 20-BALL DRAW RECURSIVE TIMER: ZERO SYNTAX ERRORS & ZERO FREEZING
- */
-function execute20BallDraw(roundId) {
-  try {
-    const tray = document.getElementById('drawn-tray');
-    tray.innerHTML = '';
-    const bigBall = document.getElementById('current-drawn-ball');
-
-    let drawnNumbers = [];
-    if (myActiveTickets.length > 0 && myActiveTickets[0].serverRes && myActiveTickets[0].serverRes.visualOutcome) {
-      drawnNumbers = myActiveTickets[0].serverRes.visualOutcome.drawnNumbers || [];
-    }
-    if (!drawnNumbers || drawnNumbers.length !== 20) {
-      const pool = Array.from({ length: 80 }, (_, i) => i + 1);
-      drawnNumbers = pool.sort(() => Math.random() - 0.5).slice(0, 20);
-    }
-
-    let currentIndex = 0;
-
-    function revealNextBall() {
-      if (currentIndex >= 20) {
-        settleRoundResults(roundId, drawnNumbers);
-        return;
-      }
-
-      const b = drawnNumbers[currentIndex];
-      bigBall.textContent = b;
-      bigBall.style.animation = 'none';
-      void bigBall.offsetWidth;
-      bigBall.style.animation = 'popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-
-      playSynth(300 + (currentIndex * 20), 0.08);
-
-      // Safe DOM lookup using getElementById (never throws querySelector syntax errors)
-      myActiveTickets.forEach(t => {
-        if (t.picks.includes(b)) {
-          const slot = document.getElementById(`uslot_${t.id}_${b}`);
-          if (slot) slot.classList.add('hit');
-        }
-      });
-
-      dynamicLiveTickets.forEach(t => {
-        if (t.picks.includes(b)) {
-          const dSlot = document.getElementById(`dslot_${t.id}_${b}`);
-          if (dSlot) dSlot.classList.add('hit');
-        }
-      });
-
-      const isHit = myActiveTickets.some(t => t.picks.includes(b));
-      const mini = document.createElement('div');
-      mini.className = `mini-ball ${isHit ? 'hit' : ''}`;
-      mini.textContent = b;
-      tray.appendChild(mini);
-
-      currentIndex++;
-      setTimeout(revealNextBall, 850);
-    }
-
-    revealNextBall();
-  } catch (err) {
-    console.error("Draw loop error:", err);
-  }
+function renderHistory() { $('history-container').innerHTML = hist.length ? hist.map(t => ticketCard(t, true)).join('') : '<div class="empty-note">No bets yet on this device</div>'; }
+function renderResults() {
+  $('results-container').innerHTML = hist.length ? hist.slice(0, 30).map(t => {
+    const ps = new Set(t.picks), time = new Date(t.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `<div class="result-row-card"><div class="res-draw-col"><div style="font-weight:bold;font-size:11px;color:var(--accent-green-bright)">${esc(String(t.id).slice(-6))}</div><div style="font-size:9px;color:var(--text-muted)">${time}</div></div>
+      <div class="res-balls-grid">${t.drawn.map(n => `<div class="res-mini-ball${ps.has(n) ? ' hit' : ''}">${n}</div>`).join('')}</div></div>`;
+  }).join('') : '<div class="empty-note">Your draws will appear here</div>';
 }
-
-function settleRoundResults(roundId, drawnNumbers) {
-  let userTotalWin = 0;
-
-  // Add round draw to statistics history
-  drawHistoryStats.unshift(drawnNumbers);
-  if (drawHistoryStats.length > 100) drawHistoryStats.pop();
-  localStorage.setItem('hulu_keno_stats', JSON.stringify(drawHistoryStats));
-
-  // Dynamically update Hot & Cold numbers and Statistics tab based on actual history
-  updateDynamicHotColdAndStats();
-
-  myActiveTickets.forEach(t => {
-    let win = 0;
-    const hits = t.picks.filter(n => drawnNumbers.includes(n)).length;
-
-    if (t.serverRes && t.serverRes.payout !== undefined) {
-      win = t.serverRes.payout;
-    } else {
-      const multList = paytable[String(t.picks.length)] || [];
-      const m = multList[hits] || 0;
-      win = t.amount * m;
-    }
-
-    const stEl = document.getElementById(`status_${t.id}`);
-    if (win > 0) {
-      userTotalWin += win;
-      if (stEl) {
-        stEl.textContent = `WON +${win.toFixed(0)} ETB`;
-        stEl.className = 'status-won';
-      }
-    } else if (stEl) {
-      stEl.textContent = `Settled`;
-      stEl.className = 'status-lost';
-    }
-
-    fullHistory.unshift({
-      roundId: t.roundId,
-      picks: t.picks,
-      amount: t.amount,
-      hits: hits,
-      win: win,
-      status: win > 0 ? 'WON' : 'LOST'
-    });
-  });
-
-  localStorage.setItem('hulu_keno_history', JSON.stringify(fullHistory.slice(0, 50)));
-
-  dynamicLiveTickets.forEach(t => {
-    const hits = t.picks.filter(n => drawnNumbers.includes(n)).length;
-    const multList = paytable[String(t.picks.length)] || [];
-    const m = multList[hits] || 0;
-    const win = t.amount * m;
-    const stEl = document.getElementById(`dstatus_${t.id}`);
-    if (win > 0 && stEl) {
-      stEl.textContent = `WON +${win.toFixed(0)} ETB`;
-      stEl.className = 'status-won';
-    } else if (stEl) {
-      stEl.textContent = `Settled`;
-      stEl.className = 'status-lost';
-    }
-  });
-
-  // Simple Toast as requested: "won 25"
-  if (userTotalWin > 0) {
-    playSynth(880, 0.25, 'triangle');
-    showToast(`won ${userTotalWin.toFixed(0)}`, 'success');
-  }
-
-  addResultRecord(roundId, drawnNumbers);
-  renderHistoryView();
-  renderLeadersTable(userTotalWin);
-  postParent({ type: 'BET_ENDED' });
-
-  // Update authoritative balance
-  refreshBalance();
+function updateStats() {
+  const c = {}; for (let i = 1; i <= 80; i++) c[i] = 0;
+  hist.forEach(t => (t.drawn || []).forEach(n => { if (c[n] !== undefined) c[n]++; }));
+  const sorted = Object.keys(c).map(Number).sort((a, b) => c[b] - c[a] || a - b), max = Math.max(...Object.values(c), 1);
+  hotSet = new Set(); coldSet = new Set();
+  if (hist.length >= 30) { hotSet = new Set(sorted.slice(0, 5)); coldSet = new Set(sorted.slice(-5)); }
+  $('stats-label').textContent = hist.length ? `Number frequency in your last ${hist.length} draw${hist.length === 1 ? '' : 's'} on this device` + (hist.length < 30 ? ' (hot/cold markers appear after 30 draws)' : '') : 'Play a few rounds and your number statistics will appear here.';
+  $('stats-bars-container').innerHTML = hist.length ? sorted.map(n => `<div class="stat-row"><div class="stat-num">${n}</div><div class="stat-bar-outer"><div class="stat-bar-fill" style="width:${Math.round(c[n] / max * 100)}%"></div></div><div class="stat-count">${c[n]}</div></div>`).join('') : '';
+  updateDots();
 }
+async function loadLeaders() {
+  const d = await api('/api/public/feed?game=JetX');
+  if (!d || !d.success) return;
+  $('leaders-tbody').innerHTML = d.wins.length ? d.wins.map((w, i) => `<tr><td>${i + 1}</td><td>${esc(w.user)}</td><td>${esc(w.game)}</td><td style="color:var(--accent-green-bright);font-weight:bold">+${Number(w.win).toFixed(2)}</td></tr>`).join('') : '<tr><td colspan="4" class="empty-note">No big wins yet</td></tr>';
+}
+function renderAll() { renderSession(); renderHistory(); renderResults(); updateStats(); loadLeaders(); }
 
-/**
- * TOAST
- */
+// ---------------- toast / tabs / lobby ----------------
 let toastTimeout = null;
 function showToast(msg, type = 'error') {
-  const overlay = document.getElementById('toast-overlay');
-  const box = document.getElementById('toast-box');
-  const msgEl = document.getElementById('toast-message');
-  const icon = document.getElementById('toast-icon');
-
-  box.className = `toast-box ${type}`;
-  msgEl.textContent = msg;
-
-  if (type === 'error') {
-    icon.innerHTML = `<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>`;
-  } else {
-    icon.innerHTML = `<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>`;
-  }
-
-  overlay.style.display = 'block';
-  if (toastTimeout) clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(hideToast, 3500);
+  $('toast-box').className = 'toast-box ' + type; $('toast-message').textContent = msg; $('toast-overlay').style.display = 'block';
+  if (toastTimeout) clearTimeout(toastTimeout); toastTimeout = setTimeout(hideToast, 3500);
 }
-
-function hideToast() {
-  document.getElementById('toast-overlay').style.display = 'none';
-}
-
-/**
- * LOBBY EXIT CONFIRMATION
- */
-function exitToLobby() {
-  if (myActiveTickets.length > 0) {
-    const confirmExit = confirm("You have active bets in this round! The draw will continue on the server and your balance will be credited. Do you want to exit to Lobby?");
-    if (!confirmExit) return;
-  }
-  postParent({ type: 'EXIT_GAME' });
-}
-
-window.addEventListener('beforeunload', (e) => {
-  if (myActiveTickets.length > 0) {
-    e.preventDefault();
-    e.returnValue = "You have active tickets running!";
-  }
-});
-
-/**
- * TABS, STATS, RESULTS & LEADERS
- */
-function switchTab(id, tabEl) {
-  playSynth(600, 0.02);
+function hideToast() { $('toast-overlay').style.display = 'none'; }
+function switchTab(id, el) {
   document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.subview').forEach(s => s.classList.remove('active'));
-
-  if (tabEl) tabEl.classList.add('active');
-  const view = document.getElementById(`view-${id}`);
-  if (view) view.classList.add('active');
+  if (el) el.classList.add('active'); const v = $('view-' + id); if (v) v.classList.add('active');
+  if (id === 'leaders') loadLeaders();
 }
+function exitToLobby() { postParent({ type: 'EXIT_GAME' }); }   // bets are settled instantly on the server, leaving is always safe
 
-function addResultRecord(id, balls) {
-  const container = document.getElementById('results-container');
-  const row = document.createElement('div');
-  row.className = 'result-row-card';
-  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-  row.innerHTML = `
-    <div class="res-draw-col">
-      <div style="font-weight:bold; font-size:11px; color:var(--accent-green-bright); display:flex; align-items:center; gap:2px;">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-        ${id}
-      </div>
-      <div style="font-size:9px; color:var(--text-muted);">${time}</div>
-    </div>
-    <div class="res-balls-grid">
-      ${balls.map(n => `<div class="res-mini-ball">${n}</div>`).join('')}
-    </div>
-  `;
-  container.prepend(row);
-}
-
-function renderHistoryView() {
-  const container = document.getElementById('history-container');
-  if (fullHistory.length === 0) return;
-  container.innerHTML = fullHistory.map(h => `
-    <div class="ticket-row">
-      <div class="ticket-user-line">
-        <span>Draw ID: ${h.roundId}</span>
-        <span class="${h.status === 'WON' ? 'status-won' : 'status-lost'}">${h.status}</span>
-      </div>
-      <div class="ticket-numbers-grid">
-        ${h.picks.map(p => `<div class="ticket-slot">${p}</div>`).join('')}
-      </div>
-      <div class="ticket-bottom-line">
-        <span>Bet: ${h.amount} ETB</span>
-        <span>${h.status === 'WON' ? '+' + h.win.toFixed(0) + ' ETB' : '0 ETB'} (${h.hits} hits)</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-function renderLeadersTable(userWin = 0) {
-  const tbody = document.getElementById('leaders-tbody');
-  const baseLeaders = [
-    { rank: 1, user: "b***w", bet: 600, win: 30000 },
-    { rank: 2, user: "y***o", bet: 630, win: 30000 },
-    { rank: 3, user: "i***s", bet: 1000, win: 20000 },
-    { rank: 4, user: "w***j", bet: 600, win: 15000 },
-    { rank: 5, user: "d***a", bet: 200, win: 8000 }
-  ];
-
-  if (userWin > 1000) {
-    baseLeaders.unshift({ rank: 1, user: "You", bet: currentBetAmount, win: userWin });
-  }
-
-  tbody.innerHTML = baseLeaders.slice(0, 5).map((l, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td>${l.user}</td>
-      <td>${l.bet}</td>
-      <td style="color:var(--accent-green-bright); font-weight:bold;">${l.win.toLocaleString()} ETB</td>
-    </tr>
-  `).join('');
-}
-
-/**
- * MODAL RULES & PAYTABLE
- */
-function openRulesModal() {
-  document.getElementById('rules-modal').style.display = 'flex';
-  switchModalTab('rules');
-}
-
-function closeRulesModal() {
-  document.getElementById('rules-modal').style.display = 'none';
-}
-
+// ---------------- rules + paytable ----------------
+function openRulesModal() { $('rules-modal').style.display = 'flex'; switchModalTab('rules'); }
+function closeRulesModal() { $('rules-modal').style.display = 'none'; }
 function switchModalTab(tab) {
-  document.getElementById('modal-nav-rules').classList.toggle('active', tab === 'rules');
-  document.getElementById('modal-nav-paytable').classList.toggle('active', tab === 'paytable');
-
-  const content = document.getElementById('modal-content');
+  $('modal-nav-rules').classList.toggle('active', tab === 'rules'); $('modal-nav-paytable').classList.toggle('active', tab === 'paytable');
+  const c = $('modal-content');
   if (tab === 'rules') {
-    content.innerHTML = `
-      <h4 style="color:#fff; margin-bottom:4px;">How to play</h4>
-      <p style="margin-bottom:8px;">Choose 1 to 10 numbers from 1 to 80. Each round runs on an 80-second continuous cycle (60s betting + 20s steady live draw). 20 numbers are drawn by certified server RNG.</p>
-      <h4 style="color:#fff; margin-bottom:4px;">Disconnection & Lobby Policy</h4>
-      <p>If you leave the game while tickets are active, the round settles on the server automatically and all winnings remain safe in your authoritative balance.</p>
-    `;
-  } else {
-    let t = `<table class="paytable-grid-table"><thead><tr><th>Hits</th>`;
-    for (let p = 1; p <= 10; p++) t += `<th>${p}</th>`;
-    t += `</tr></thead><tbody>`;
-
-    for (let h = 0; h <= 10; h++) {
-      t += `<tr><td style="font-weight:bold; color:#fff;">${h}</td>`;
-      for (let p = 1; p <= 10; p++) {
-        const mults = paytable[String(p)] || [];
-        const m = mults[h];
-        t += `<td>${m !== undefined && m > 0 ? m + 'x' : '-'}</td>`;
-      }
-      t += `</tr>`;
-    }
-    t += `</tbody></table>`;
-    content.innerHTML = t;
+    c.innerHTML = `<h4 style="color:#fff;margin-bottom:4px">How to play</h4>
+      <p style="margin-bottom:8px">Choose 1 to 10 numbers from 1 to 80 and press BET. The server draws 20 numbers from 80. Your win = bet × the multiplier for your number of picks and hits (see the Paytable).</p>
+      <h4 style="color:#fff;margin-bottom:4px">Limits</h4>
+      <p style="margin-bottom:8px">Bet ${MIN_BET} – ${MAX_BET} ETB. Maximum payout per bet ${MAX_PAYOUT.toLocaleString()} ETB.</p>
+      <h4 style="color:#fff;margin-bottom:4px">Fair &amp; instant</h4>
+      <p>Every bet is drawn and paid immediately by the server, so leaving the game never changes a result. The Paytable shows the theoretical return (RTP) for each number of picks. Play responsibly.</p>`;
+  } else if (!paytable) c.innerHTML = '<p>Loading paytable…</p>';
+  else {
+    let t = '<table class="paytable-grid-table"><thead><tr><th>Hits</th>' + Array.from({ length: 10 }, (_, i) => `<th>${i + 1}</th>`).join('') + '</tr></thead><tbody>';
+    for (let h = 0; h <= 10; h++) { t += `<tr><td style="font-weight:bold;color:#fff">${h}</td>`; for (let p = 1; p <= 10; p++) { const m = (paytable[String(p)] || [])[h]; t += `<td>${m !== undefined && m > 0 ? m + 'x' : '-'}</td>`; } t += '</tr>'; }
+    t += '<tr><td style="font-weight:bold;color:var(--accent-gold)">RTP</td>' + Array.from({ length: 10 }, (_, i) => `<td style="color:var(--accent-gold)">${(rtpFor(i + 1) || 0).toFixed(1)}%</td>`).join('') + '</tr></tbody></table>';
+    c.innerHTML = t + '<p class="note">Columns = how many numbers you picked. RTP = long-run share of stakes paid back.</p>';
   }
 }
 
-document.addEventListener('pointerdown', () => { getAudioContext(); }, { once: true });
-
-window.addEventListener('DOMContentLoaded', () => {
-  const { roundId } = getGlobalRoundInfo();
-  dynamicAllCount = computeBaseRoundBets(roundId);
-  document.getElementById('lbl-all-count').textContent = dynamicAllCount;
-
-  buildGrid();
-  renderBetDisplay();
-  updateDynamicHotColdAndStats();
-  renderLeadersTable();
-  renderHistoryView();
-  loadPersistedActiveTickets(roundId);
-  initDynamicPlayerFeed();
-});
+document.addEventListener('pointerdown', () => { try { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) {} }, { once: true });
+window.addEventListener('DOMContentLoaded', () => { buildGrid(); renderBetDisplay(); showArena('select'); renderAll(); updateBetBtn(); loadPaytable(); });
 </script>
 </body>
 </html>
