@@ -6,14 +6,6 @@
 <title>FAST KENO — Original Graphics Upgrade</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&display=swap');
-@import url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/css/dseg.css');
-@import url('https://cdn.jsdelivr.net/npm/@fontsource/dseg7-modern@5.0.7/index.min.css');
-
-@font-face {
-  font-family: 'Digital7';
-  src: url('https://cdn.jsdelivr.net/gh/keshikan/DSEG@master/fonts/DSEG7-Modern/DSEG7Modern-Bold.woff2') format('woff2');
-  font-weight: bold;
-}
 
 :root{--bg-dark:#12181c;--bg-surface:#172127;--bg-panel:#1e2a32;--border-panel:#2a3a45;--accent-green:#23784c;--accent-green-bright:#3de089;--accent-cyan:#00e5ff;--accent-gold:#f5b041;--text-muted:#8397a4;--dot-red:#ff4757;--dot-blue:#1e90ff}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;user-select:none}
@@ -158,108 +150,16 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
 .pill-divider{height:28px;background:#2b4836}.round-id{font-size:clamp(10px,2.2vw,15px);color:#edf1ef;white-space:nowrap}.round-id strong{font-size:inherit}
 .verified-icon{width:clamp(17px,3vw,24px);height:clamp(17px,3vw,24px);filter:drop-shadow(0 1px 3px #2d9c70)}
 .header-actions{gap:clamp(8px,2.2vw,18px)}.icon-btn{color:#79d5a5;padding:4px}.icon-btn svg{width:clamp(18px,4vw,25px);height:clamp(18px,4vw,25px)}
-
-/* === EXACT LARGE CIRCLE LINES WITH LOW OPACITY (MATCHING SCREENSHOT) === */
-.radar-arena{
-  min-height:clamp(170px,35vw,285px);
-  padding:18px 10px 12px;
-  background:radial-gradient(ellipse at 50% 55%,rgba(19,88,70,.45) 0%,rgba(17,43,38,.28) 32%,rgba(17,29,29,.92) 72%,#171d1d 100%);
-  border:0;
-  isolation:isolate;
-}
-.radar-rings-box{
-  position:absolute;
-  inset:-45%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  pointer-events:none;
-  overflow:visible;
-}
-
-/* Large Concentric Circles with Low Capacity / Opacity */
-.sonar-ring{
-  position:absolute;
-  border-radius:50%;
-  pointer-events:none;
-  opacity:0.24; /* Low capacity/opacity as in the screenshot */
-  background:transparent;
-  -webkit-mask:none;
-  mask:none;
-}
-.r1{
-  width:clamp(160px,38vw,260px);
-  height:clamp(160px,38vw,260px);
-  border:1px solid rgba(82,181,135,0.45);
-}
-.r2{
-  width:clamp(290px,68vw,470px);
-  height:clamp(290px,68vw,470px);
-  border:1.5px dashed rgba(82,181,135,0.38);
-}
-.r3{
-  width:clamp(440px,105vw,720px);
-  height:clamp(440px,105vw,720px);
-  border:1px solid rgba(82,181,135,0.28);
-}
-.r4{
-  width:clamp(620px,145vw,1000px);
-  height:clamp(620px,145vw,1000px);
-  border:1.5px dashed rgba(82,181,135,0.22);
-}
-
-.radar-arena:not(.drawing) .r1{animation:radarSpin 35s linear infinite}
-.radar-arena:not(.drawing) .r2{animation:radarSpinRev 48s linear infinite}
-.radar-arena:not(.drawing) .r3{animation:radarSpin 65s linear infinite}
-.radar-arena:not(.drawing) .r4{animation:radarSpinRev 85s linear infinite}
-
-.radar-arena.drawing .r1{animation:radarSpin 9s linear infinite}
-.radar-arena.drawing .r2{animation:radarSpinRev 14s linear infinite}
-.radar-arena.drawing .r3{animation:radarSpin 21s linear infinite}
-.radar-arena.drawing .r4{animation:radarSpinRev 28s linear infinite}
-
-.radar-top-row{top:6px;padding:0 10px;color:#a8b8b1}
-.rule-badge{background:#1c2928;border-color:#315143}
-.rule-badge.blue{background:#244a42;color:#d6fff0}
-
-/* === DIGITAL 7-SEGMENT FONT TIMER (WHITE NUMBERS, CENTERED CAPSULE) === */
-.radar-timer{
-  font-family:'DSEG7-Modern','DSEG7-Classic','Digital7','Orbitron',monospace;
-  font-size:clamp(17px,3.8vw,25px);
-  font-weight:700;
-  letter-spacing:0.18em;
-  font-variant-numeric:tabular-nums;
-  color:#ffffff;
-  text-shadow:0 0 3px #ffffff, 0 0 8px rgba(105,201,154,0.6);
-  line-height:1;
-  background:#101a18;
-  border:1px solid rgba(82,181,135,0.45);
-  border-radius:18px;
-  padding:3px 14px;
-  box-shadow:inset 0 0 6px rgba(0,0,0,0.7), 0 0 10px rgba(82,181,135,0.18);
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-.radar-timer.live{
-  color:#ffffff;
-  animation:none;
-}
-
-/* White numbers and bright green slash for '20/20' */
-.radar-timer .digit-val{
-  color:#ffffff;
-  font-family:'DSEG7-Modern','DSEG7-Classic','Digital7','Orbitron',monospace;
-}
-.radar-timer .green-slash{
-  color:#3de089; /* Bright green */
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  font-weight:900;
-  font-size:0.95em;
-  margin:0 4px;
-  text-shadow:0 0 8px rgba(61,224,137,0.8);
-}
-
+.radar-arena{min-height:clamp(170px,35vw,285px);padding:18px 10px 12px;background:radial-gradient(ellipse at 50% 58%,rgba(19,88,70,.52) 0%,rgba(17,43,38,.36) 30%,rgba(17,29,29,.94) 70%,#171d1d 100%);border:0;isolation:isolate}
+.radar-rings-box{inset:-24%;overflow:hidden}
+.radar-arena:not(.drawing) .r1{animation:radarSpin 32s linear infinite}.radar-arena:not(.drawing) .r2{animation:radarSpinRev 43s linear infinite}.radar-arena:not(.drawing) .r3{animation:radarSpin 55s linear infinite}
+.sonar-ring{border:0;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(82,181,135,.22) 0deg 7deg,transparent 7deg 31deg);-webkit-mask:radial-gradient(circle,transparent 0 47%,#000 48% 49%,transparent 50% 59%,#000 60% 61%,transparent 62% 70%,#000 71% 72%,transparent 73%);mask:radial-gradient(circle,transparent 0 47%,#000 48% 49%,transparent 50% 59%,#000 60% 61%,transparent 62% 70%,#000 71% 72%,transparent 73%);opacity:.9}
+.r1{width:clamp(130px,34vw,240px);height:clamp(130px,34vw,240px);background:repeating-conic-gradient(from 10deg,rgba(100,204,151,.23) 0deg 5deg,transparent 5deg 38deg)}
+.r2{width:clamp(220px,57vw,390px);height:clamp(220px,57vw,390px);background:repeating-conic-gradient(from 20deg,rgba(100,204,151,.17) 0deg 4deg,transparent 4deg 31deg)}
+.r3{width:clamp(310px,80vw,550px);height:clamp(310px,80vw,550px);background:repeating-conic-gradient(from 5deg,rgba(100,204,151,.13) 0deg 4deg,transparent 4deg 24deg)}
+.radar-arena.drawing .r1{animation:radarSpin 8s linear infinite}.radar-arena.drawing .r2{animation:radarSpinRev 13s linear infinite}.radar-arena.drawing .r3{animation:radarSpin 19s linear infinite}
+.radar-top-row{top:6px;padding:0 10px;color:#a8b8b1}.rule-badge{background:#1c2928;border-color:#315143}.rule-badge.blue{background:#244a42;color:#d6fff0}
+.radar-timer{color:#dce8e3;text-shadow:0 0 8px #6cc89a;font-family:"Courier New",monospace}
 .selection-view{margin-top:12px;gap:10px}.choose-title{font-size:clamp(16px,3vw,22px);color:#dbe4e0}.choose-sub{font-size:clamp(12px,2.2vw,15px);color:#6bc99a}
 .possible-win-view{padding:0 4px}.possible-win-header{font-size:clamp(15px,3vw,22px);color:#e2e9e5}.possible-win-header span{font-size:1.1em;color:#63c78f}
 .odds-row{font-size:clamp(10px,2vw,14px);gap:8px}.selected-rack{gap:5px}
@@ -273,11 +173,12 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
 .mini-ball:before{content:"";position:absolute;left:12%;top:5%;width:76%;height:34%;border-radius:50%;background:linear-gradient(#d4e2e9a8,#8aa1b022);pointer-events:none}
 .mini-ball.hit{background:radial-gradient(circle at 35% 25%,#76edb2 0%,#159866 44%,#063b2a 88%);border-color:#6ce0a4;box-shadow:inset 0 2px 4px #ffffff8a,0 0 14px #50d9939c;color:#dffff0}
 .draw-result{font-size:clamp(15px,3vw,23px);margin-top:10px;min-height:28px}.res-win{color:#6cdda1;text-shadow:0 0 13px #38c47b70}.res-lose{color:#a0aaa7}
+/* Keep the complete 20-ball animation: no visible or functional skip control. */
 .skip-btn{display:none!important}
 .grid-section{padding:8px 10px;width:100%}.keno-grid{gap:3px}
 .grid-cell{height:clamp(37px,10.8vw,64px);border-radius:5px;border:1px solid #202a2e;background:linear-gradient(180deg,#303a40 0%,#252e33 100%);color:#aeb5ba;font-size:clamp(13px,3.8vw,27px);font-weight:800;box-shadow:inset 0 1px 0 #ffffff09;transition:background .2s,color .2s,transform .16s,box-shadow .2s}
 .grid-cell.selected{background:linear-gradient(180deg,#2b684a,#4d9870);color:#f5fff9;border-color:#3b865f;box-shadow:inset 0 1px 0 #ffffff26,0 0 9px #2a9c6230}
-.cell-dot{width:9px;height:9px;top:3px}.dot-hot{box-shadow:none!important}.dot-cold{box-shadow:none!important}
+.cell-dot{width:9px;height:9px;top:3px}.dot-hot{box-shadow:0 0 5px var(--dot-red)}.dot-cold{box-shadow:0 0 5px var(--dot-blue)}
 .controls-wrapper{padding:0 10px}.bet-stepper{background:linear-gradient(180deg,#303a40,#252f34);border:0;border-radius:4px;margin-bottom:10px;gap:4px;overflow:visible}
 .ctrl-step-btn{width:clamp(32px,8vw,56px);height:clamp(44px,9vw,58px);font-size:clamp(24px,5vw,35px);color:#b8c0c3}
 .bet-amt-val{font-size:clamp(22px,5vw,36px);color:#f0f2f2}
@@ -302,7 +203,8 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
 @keyframes ballFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 @keyframes toastPop{0%{opacity:0;transform:scale(.82) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)}}
 @media(min-width:600px){.grid-cell{height:clamp(42px,5.2vw,62px)}.radar-arena{min-height:260px}.drawn-tray{max-width:650px}.mini-ball{max-width:58px;justify-self:center}}
-@media(prefers-reduced-motion:reduce){.radar-arena.drawing .r1,.radar-arena.drawing .r2,.radar-arena.drawing .r3,.radar-arena.drawing .r4{animation-duration:35s!important}.big-3d-ball,.toast-box{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.radar-arena.drawing .r1,.radar-arena.drawing .r2,.radar-arena.drawing .r3{animation-duration:35s!important}.big-3d-ball,.toast-box{animation:none!important}}
+
 
 /* === ORIGINAL FAST KENO ASSETS + FINAL DETAIL PASS === */
 .brand-logo{width:clamp(76px,15vw,118px);min-width:clamp(76px,15vw,118px);height:clamp(35px,6vw,56px);display:flex;align-items:center;justify-content:flex-start;flex:none}
@@ -310,6 +212,8 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
 .brand-logo .logo-fallback{display:none;font-size:clamp(20px,3.6vw,30px);font-weight:900;font-style:italic;line-height:.78;letter-spacing:-1.1px}
 .brand-logo .logo-fallback>span{display:block}.brand-logo .logo-fallback .keno{color:#63c98f;margin-top:3px}
 .round-id{gap:4px}.verified-icon{width:clamp(21px,3.8vw,29px);height:clamp(21px,3.8vw,29px);filter:none;flex:none}
+.radar-timer{font-family:'Orbitron','DS-Digital','Digital-7',monospace;font-size:clamp(16px,3.6vw,24px);font-weight:800;letter-spacing:.13em;font-variant-numeric:tabular-nums;color:#e9f7f0;text-shadow:0 0 2px #e9fff3,0 0 7px #8fdab5;line-height:1.15}
+.radar-timer.live{color:#e9f7f0;animation:none;text-shadow:0 0 2px #e9fff3,0 0 7px #8fdab5}
 .selection-view{position:relative;isolation:isolate;min-height:clamp(154px,35vw,280px);justify-content:center;align-items:stretch;margin:10px 0 8px;padding:clamp(16px,3.5vw,30px) clamp(12px,3vw,24px);border-radius:9px;background:#263133;border:1px solid #222e2e;overflow:hidden}
 .selection-view:before{content:"";position:absolute;inset:-25%;z-index:-1;pointer-events:none;opacity:.8;background:repeating-conic-gradient(from 10deg at 38% 52%,transparent 0deg 24deg,rgba(85,171,127,.16) 24deg 26deg,transparent 26deg 42deg);-webkit-mask:radial-gradient(ellipse at 38% 52%,transparent 0 20%,#000 21% 22%,transparent 23% 37%,#000 38% 39%,transparent 40% 53%,#000 54% 55%,transparent 56%);mask:radial-gradient(ellipse at 38% 52%,transparent 0 20%,#000 21% 22%,transparent 23% 37%,#000 38% 39%,transparent 40% 53%,#000 54% 55%,transparent 56%)}
 .choose-banner{display:flex;align-items:center;justify-content:flex-start;gap:clamp(12px,3vw,26px);width:100%;min-height:100%;text-align:left}
@@ -326,12 +230,18 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
 .selected-rack{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:clamp(3px,.8vw,7px);overflow:visible}
 .rack-slot{min-width:0;width:100%;height:clamp(32px,7.5vw,58px);border:0;border-radius:3px;background:#1d2729;box-shadow:none;font-size:clamp(12px,2.8vw,22px)}
 .rack-slot.filled{background:#1d2729;border:0}
+.radar-rings-box{inset:-24%;overflow:hidden}
+.radar-arena:not(.drawing) .r1{animation:radarSpin 32s linear infinite}.radar-arena:not(.drawing) .r2{animation:radarSpinRev 43s linear infinite}.radar-arena:not(.drawing) .r3{animation:radarSpin 55s linear infinite}
+.sonar-ring{border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(100,204,151,.2) 0deg 5deg,transparent 5deg 29deg);-webkit-mask:radial-gradient(circle,transparent 0 47%,#000 48% 49%,transparent 50% 59%,#000 60% 61%,transparent 62% 70%,#000 71% 72%,transparent 73%);mask:radial-gradient(circle,transparent 0 47%,#000 48% 49%,transparent 50% 59%,#000 60% 61%,transparent 62% 70%,#000 71% 72%,transparent 73%);opacity:.92}
 .radar-arena.drawing .radar-top-row{display:block}
 .radar-arena.drawing .radar-top-row .draw-counter-placeholder,.radar-arena.drawing .radar-top-row .rule-pill:last-child{display:none}
 .radar-arena.drawing .radar-timer{position:absolute;top:5px;right:12px;left:auto;z-index:6;font-size:clamp(15px,3.2vw,22px);letter-spacing:.06em}
+/* Hot/cold dots are flat original markers: no glow or drop shadow. */
 .cell-dot,.dot-hot,.dot-cold{box-shadow:none!important;filter:none!important}
 .grid-cell .cell-dot{box-shadow:none!important}
 @media(max-width:420px){.choose-illustration{width:clamp(88px,23vw,112px);height:clamp(88px,23vw,112px)}.selection-view{padding:14px 10px}.choose-banner{gap:10px}.choose-title{font-size:clamp(18px,4.7vw,23px)}.choose-sub{font-size:clamp(14px,3.5vw,18px);margin-top:6px}.possible-win-header{margin-bottom:8px}.odds-row{margin-bottom:8px}}
+@media(prefers-reduced-motion:reduce){.radar-arena.drawing .r1,.radar-arena.drawing .r2,.radar-arena.drawing .r3{animation-duration:35s!important}}
+
 </style>
 </head>
 <body>
@@ -364,7 +274,6 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
         <div class="sonar-ring r1"></div>
         <div class="sonar-ring r2"></div>
         <div class="sonar-ring r3"></div>
-        <div class="sonar-ring r4"></div>
       </div>
       <div class="radar-top-row">
         <div class="rule-pill draw-counter-placeholder" aria-hidden="true"></div>
@@ -447,7 +356,7 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
 
 <script>
 /**
- * FAST KENO (Official Hulu Bet Server Authoritative Integration)
+ * FAST KENO (Official Ethiopian Keno Fast Paytable + Slow ~950ms Draw + Rotating Sonar)
  */
 const API = "https://hulubet-server.onrender.com";
 let INIT_DATA = "", serverBalance = 0, shownBalance = 0, ready = false;
@@ -488,7 +397,7 @@ const BET_WINDOW = 60;
 const DRAW_WINDOW = 20;
 const TOTAL_CYCLE = 80;
 const MIN_BET = 1, MAX_BET = 1000, MAX_PICKS = 10;
-const MAX_PAYOUT = 30000;
+const MAX_PAYOUT = 30000; // Capped at 30,000 ETB exactly as shown in screenshot
 
 // Complete Official Odds matching Image 1 & standard rules
 let paytable = {
@@ -545,6 +454,7 @@ function playSynth(freq = 600, duration = .06, type = 'sine') {
     o.start(); o.stop(audioCtx.currentTime + duration);
   } catch (e) {}
 }
+
 
 // ---------------- Grid & Picks ----------------
 function buildGrid() {
@@ -740,7 +650,7 @@ function renderActiveUserTickets() {
 function createPlayerTicket() {
   simTicketSeq++;
   const name = PLAYER_NAMES[Math.floor(Math.random() * PLAYER_NAMES.length)];
-  const pickCount = Math.floor(Math.random() * 3) + 2;
+  const pickCount = Math.floor(Math.random() * 3) + 2; // 2 to 4 picks
   const pool = Array.from({ length: 80 }, (_, i) => i + 1).sort(() => Math.random() - .5);
   return {
     id: `sim_${simTicketSeq}`,
@@ -796,13 +706,13 @@ setInterval(() => {
     $('controls-section').style.display = 'block';
     $('draw-view').style.display = 'none';
     $('selection-view').style.display = 'flex';
+    // Skip control intentionally removed; preserve the complete draw sequence.
     $('radar-arena').classList.remove('drawing');
 
     const remSec = BET_WINDOW - cycleSec;
     const tEl = $('stage-timer');
     tEl.classList.remove('live');
-    // Digital 7-Segment Format: 00:07
-    tEl.innerHTML = `<span class="digit-val">00:${remSec < 10 ? '0' : ''}${remSec}</span>`;
+    tEl.textContent = `00:${remSec < 10 ? '0' : ''}${remSec}`;
 
     if (lastPhase === 'drawing') {
       lastPhase = 'betting';
@@ -834,8 +744,9 @@ setInterval(() => {
     $('controls-section').style.display = 'none';
     $('selection-view').style.display = 'none';
     $('draw-view').style.display = 'flex';
+    // Full 20-ball draw animation runs without a skip control.
     
-    // Rotate rings during 20-ball draw
+    // ROTATE RADAR CONCENTRIC RINGS
     $('radar-arena').classList.add('drawing');
 
     if (!drawInProgress) {
@@ -875,8 +786,7 @@ function run20BallDraw(roundId) {
       big.style.animation = 'none'; void big.offsetWidth;
       big.style.animation = 'popIn .35s cubic-bezier(.175,.885,.32,1.275)';
 
-      // 7-Segment font with White Numbers and Bright Green Slash: '17 / 20'
-      $('stage-timer').innerHTML = `<span class="digit-val">${idx + 1}</span><span class="green-slash">/</span><span class="digit-val">20</span>`;
+      $('stage-timer').textContent = `${idx + 1} / 20`;
 
       // Highlight hits on user tickets
       myActiveTickets.forEach(t => {
@@ -900,6 +810,7 @@ function run20BallDraw(roundId) {
       tray.appendChild(m);
 
       idx++;
+      // Keep the complete 20-ball draw at the original ~950ms cadence.
       setTimeout(step, 950);
     }
 
@@ -908,12 +819,13 @@ function run20BallDraw(roundId) {
     console.error("Draw loop error:", e);
   }
 }
-function skipDraw() { }
+function skipDraw() { /* Intentionally disabled: all 20 balls must animate. */ }
 
 // ---------------- Settle Round & Reveal Authoritative Balance ----------------
 function settleRound(roundId, drawn) {
+  // Skip control intentionally removed; all 20 balls complete normally.
   $('stage-timer').classList.remove('live');
-  $('stage-timer').innerHTML = `<span class="digit-val">DONE</span>`;
+  $('stage-timer').textContent = 'DONE';
   $('radar-arena').classList.remove('drawing');
 
   let totalWin = 0;
@@ -1005,6 +917,7 @@ function updateLiveStatistics() {
 // ---------------- Results & Pre-Populated Historical Draws ----------------
 function initPrePopulatedResults() {
   const c = $('results-container'); c.innerHTML = '';
+  // 12 Realistic historical rounds so new players immediately see past outcomes
   const historicalDraws = [
     { id: 64104, time: '15:16', balls: [51,23,46,34,33,4,27,60,42,54,57,12,48,55,13,6,39,3,18,69] },
     { id: 64103, time: '15:14', balls: [10,26,71,1,54,69,36,22,48,39,51,11,15,70,38,42,60,18,25,67] },
