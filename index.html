@@ -291,14 +291,25 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
         <div class="radar-timer" id="stage-timer">00:44</div>
         <div class="rule-pill" style="cursor:pointer;" onclick="openRulesModal()">?</div>
       </div>
+
+     
       <div class="selection-view" id="selection-view">
-        <div id="default-banner" class="choose-banner"><img class="choose-illustration" src="https://i.postimg.cc/8ccCfV0p/20261019-184700.png" alt="Keno balls 80, 10 and 1"><div class="choose-copy"><div class="choose-title">Choose 10 numbers</div><div class="choose-sub">From 1 to 80</div></div></div>
+        <div id="default-banner" class="choose-banner">
+          <img class="choose-illustration" src="https://i.postimg.cc/8ccCfV0p/20261019-184700.png" alt="Keno balls 80, 10 and 1">
+          <div class="choose-copy">
+            <div class="choose-title">Choose 10 numbers</div>
+            <div class="choose-sub">From 1 to 80</div>
+          </div>
+          <div class="card-help-badge" onclick="openRulesModal()" title="Rules">?</div>
+        </div>
         <div class="possible-win-view" id="possible-win-view">
           <div class="possible-win-header">Possible win <span id="lbl-possible-win">30000</span> ETB</div>
           <div class="odds-row" id="odds-row-container"></div>
           <div class="selected-rack" id="selected-rack"></div>
         </div>
       </div>
+
+     
       <div class="draw-view" id="draw-view">
         <div class="big-3d-ball" id="current-drawn-ball">?</div>
         <div class="drawn-tray" id="drawn-tray"></div>
