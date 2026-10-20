@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>FAST KENO — Original Graphics Upgrade</title>
 <style>
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/dseg7-classic@5.2.6/index.css');
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&display=swap');
 
 :root{--bg-dark:#12181c;--bg-surface:#172127;--bg-panel:#1e2a32;--border-panel:#2a3a45;--accent-green:#23784c;--accent-green-bright:#3de089;--accent-cyan:#00e5ff;--accent-gold:#f5b041;--text-muted:#8397a4;--dot-red:#ff4757;--dot-blue:#1e90ff}
@@ -241,6 +242,16 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
 .grid-cell .cell-dot{box-shadow:none!important}
 @media(max-width:420px){.choose-illustration{width:clamp(88px,23vw,112px);height:clamp(88px,23vw,112px)}.selection-view{padding:14px 10px}.choose-banner{gap:10px}.choose-title{font-size:clamp(18px,4.7vw,23px)}.choose-sub{font-size:clamp(14px,3.5vw,18px);margin-top:6px}.possible-win-header{margin-bottom:8px}.odds-row{margin-bottom:8px}}
 @media(prefers-reduced-motion:reduce){.radar-arena.drawing .r1,.radar-arena.drawing .r2,.radar-arena.drawing .r3{animation-duration:35s!important}}
+
+
+/* V3 small visual-only refinements requested by user */
+@font-face{font-family:"DSEG7 Classic";src:url("https://cdn.jsdelivr.net/npm/@fontsource/dseg7-classic@5.2.6/files/dseg7-classic-latin-400-normal.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+.radar-timer{font-family:"DSEG7 Classic","DSEG7 Classic Mini","DS-Digital",monospace!important;font-size:clamp(15px,3.3vw,22px);font-weight:400;letter-spacing:.035em;color:#fff!important;font-variant-numeric:tabular-nums;text-shadow:0 0 2px rgba(255,255,255,.55),0 0 5px rgba(143,218,181,.22)}
+.radar-timer .timer-slash{color:#43f3a4!important;padding:0 .08em}
+.radar-timer.live{color:#fff!important}
+/* Large concentric circle/radar lines like the reference, kept low-contrast. */
+.sonar-ring{opacity:.48!important;background:repeating-conic-gradient(from 0deg,rgba(100,204,151,.11) 0deg 5deg,transparent 5deg 29deg)!important}
+.selection-view:before{opacity:.42!important;background:repeating-conic-gradient(from 10deg at 38% 52%,transparent 0deg 24deg,rgba(85,171,127,.095) 24deg 26deg,transparent 26deg 42deg)!important}
 
 </style>
 </head>
@@ -712,7 +723,7 @@ setInterval(() => {
     const remSec = BET_WINDOW - cycleSec;
     const tEl = $('stage-timer');
     tEl.classList.remove('live');
-    tEl.textContent = `00:${remSec < 10 ? '0' : ''}${remSec}`;
+    tEl.innerHTML = `00<span class="timer-slash">:</span>${remSec < 10 ? '0' : ''}${remSec}`;
 
     if (lastPhase === 'drawing') {
       lastPhase = 'betting';
@@ -786,7 +797,7 @@ function run20BallDraw(roundId) {
       big.style.animation = 'none'; void big.offsetWidth;
       big.style.animation = 'popIn .35s cubic-bezier(.175,.885,.32,1.275)';
 
-      $('stage-timer').textContent = `${idx + 1} / 20`;
+      $('stage-timer').innerHTML = `${idx + 1}<span class="timer-slash">/</span>20`;
 
       // Highlight hits on user tickets
       myActiveTickets.forEach(t => {
