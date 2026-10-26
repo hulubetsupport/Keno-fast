@@ -105,7 +105,7 @@ header.brand-bar{display:flex;justify-content:space-between;align-items:center;p
 .result-row-card{background:var(--bg-panel);border:1px solid var(--border-panel);border-radius:4px;padding:8px 10px;margin-bottom:6px;display:flex;gap:10px}
 .res-draw-col{width:90px;border-right:1px solid var(--border-panel);display:flex;flex-direction:column;justify-content:center}
 .res-balls-grid{flex:1;display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
-.res-mini-ball{background:#141d24;text-align:center;border-radius:2px;padding:3px 0;font-size:10px;font-weight:bold;color:#cbd5e1}
+.res-mini-ball{background:#141d24;text-align:center;border-radius:2px;padding:3px 0;font-size:10px;font-weight:bold;color:#cbd5e1}.result-source-tag{font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:#9aa7a2;margin-top:3px}.result-source-tag.preview{color:#f2df4b}.result-source-tag.server{color:#69c99a}.history-round-heading{display:flex;align-items:center;justify-content:space-between;padding:8px 4px 5px;color:#69c99a;font-size:13px;border-bottom:1px solid #33413d;margin:4px 0}.history-ticket{background:#263133;border:1px solid #202a2c;border-radius:7px;padding:6px;margin-bottom:6px}.history-ticket .ticket-numbers-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px}.history-ticket .ticket-slot{height:clamp(30px,6vw,48px);font-size:clamp(11px,2.5vw,18px)}.history-ticket .ticket-bottom-line{margin-top:4px}
 .stats-scroll-list{max-height:450px;overflow-y:auto;padding-right:4px}
 .stat-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:11px}
 .stat-num{width:22px;text-align:right;color:var(--text-muted);font-weight:bold}
@@ -217,9 +217,9 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
 .radar-timer.live{color:#e9f7f0;animation:none;text-shadow:0 0 2px #e9fff3,0 0 7px #8fdab5}
 .selection-view{position:relative;isolation:isolate;min-height:clamp(154px,35vw,280px);justify-content:center;align-items:stretch;margin:10px 0 8px;padding:clamp(16px,3.5vw,30px) clamp(12px,3vw,24px);border-radius:9px;background:#263133;border:1px solid #222e2e;overflow:hidden}
 .selection-view:before{content:"";position:absolute;inset:-25%;z-index:-1;pointer-events:none;opacity:.8;background:repeating-conic-gradient(from 10deg at 38% 52%,transparent 0deg 24deg,rgba(85,171,127,.16) 24deg 26deg,transparent 26deg 42deg);-webkit-mask:radial-gradient(ellipse at 38% 52%,transparent 0 20%,#000 21% 22%,transparent 23% 37%,#000 38% 39%,transparent 40% 53%,#000 54% 55%,transparent 56%);mask:radial-gradient(ellipse at 38% 52%,transparent 0 20%,#000 21% 22%,transparent 23% 37%,#000 38% 39%,transparent 40% 53%,#000 54% 55%,transparent 56%)}
-.choose-banner{display:flex;align-items:center;justify-content:flex-start;gap:clamp(12px,3vw,26px);width:100%;min-height:100%;text-align:left}
-.choose-illustration{display:block;width:clamp(100px,24vw,175px);height:clamp(100px,24vw,175px);object-fit:contain;object-position:center;flex:0 0 auto}
-.choose-copy{min-width:0;position:relative;z-index:1}
+.choose-banner{display:flex;flex-direction:row-reverse;align-items:center;justify-content:space-between;gap:clamp(12px,3vw,26px);width:100%;min-height:100%;text-align:left}
+.choose-illustration{display:block;width:clamp(100px,24vw,175px);height:clamp(100px,24vw,175px);object-fit:contain;object-position:center;flex:0 0 auto;filter:drop-shadow(0 3px 5px rgba(0,0,0,.28))}
+.choose-copy{min-width:0;position:relative;z-index:1;flex:1}
 .choose-title{font-size:clamp(21px,4.8vw,38px);line-height:1.15;font-weight:800;color:#f0f3f2;white-space:normal}
 .choose-sub{font-size:clamp(16px,3.6vw,27px);line-height:1.25;margin-top:10px;color:#69c99a;font-weight:800}
 .possible-win-view{position:relative;z-index:1;padding:0;width:100%}
@@ -245,15 +245,180 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
 
 
 /* V3 small visual-only refinements requested by user */
-@font-face{font-family:"DSEG7 Classic";src:url("https://cdn.jsdelivr.net/npm/@fontsource/dseg7-classic@5.2.6/files/dseg7-classic-latin-400-normal.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
-.radar-timer{font-family:"DSEG7 Classic","DSEG7 Classic Mini","DS-Digital",monospace!important;font-size:clamp(15px,3.3vw,22px);font-weight:400;letter-spacing:.035em;color:#fff!important;font-variant-numeric:tabular-nums;text-shadow:0 0 2px rgba(255,255,255,.55),0 0 5px rgba(143,218,181,.22)}
-.radar-timer .timer-slash{color:#43f3a4!important;padding:0 .08em}
-.radar-timer.live{color:#fff!important}
+/* Timer font file must sit beside this HTML file in the GitHub repository. */
+@font-face{font-family:"TimerFont";src:url("./timerfont.ttf") format("truetype");font-style:normal;font-weight:400;font-display:swap}
+.radar-timer{font-family:"TimerFont",monospace!important;font-size:clamp(18px,3.7vw,25px)!important;font-weight:400;letter-spacing:.045em!important;color:#fff!important;font-variant-numeric:tabular-nums;text-shadow:none!important;filter:none!important;line-height:1.25}
+.radar-timer .timer-slash{color:#43f3a4!important;padding:0 .08em;text-shadow:none!important}
+.radar-timer.live{color:#fff!important;animation:none!important;text-shadow:none!important;filter:none!important}
 /* Large concentric circle/radar lines like the reference, kept low-contrast. */
 .sonar-ring{opacity:.48!important;background:repeating-conic-gradient(from 0deg,rgba(100,204,151,.11) 0deg 5deg,transparent 5deg 29deg)!important}
 .selection-view:before{opacity:.42!important;background:repeating-conic-gradient(from 10deg at 38% 52%,transparent 0deg 24deg,rgba(85,171,127,.095) 24deg 26deg,transparent 26deg 42deg)!important}
 
 
+/* === FAST KENO UI POLISH: typography, spacing, alignment, readability only === */
+header.brand-bar{
+  padding:6px clamp(9px,2.1vw,16px);
+  gap:clamp(7px,1.6vw,13px);
+  min-height:50px;
+}
+.brand-group{gap:clamp(7px,1.5vw,12px)}
+.header-pill{min-height:32px;padding:4px clamp(8px,1.7vw,13px);gap:clamp(6px,1.3vw,10px)}
+.balance-val{line-height:1.15;letter-spacing:.01em}
+.pill-divider{height:clamp(22px,4.5vw,30px);flex:none}
+.round-id{gap:4px;line-height:1.2;letter-spacing:.01em;min-width:0}
+.round-id strong{font-variant-numeric:tabular-nums;letter-spacing:.015em}
+.verified-icon{flex:none}
+
+.radar-top-row{padding-inline:clamp(10px,2.2vw,18px)}
+.radar-timer{
+  min-height:1.25em;
+  font-size:clamp(18px,3.7vw,25px)!important;
+  letter-spacing:.045em!important;
+  line-height:1.25;
+  font-variant-numeric:tabular-nums;
+  text-align:center;
+}
+.radar-timer .timer-slash{padding-inline:.09em}
+
+.selection-view{
+  margin:clamp(9px,1.8vw,14px) 0 clamp(8px,1.5vw,12px);
+  padding:clamp(16px,3.2vw,26px) clamp(12px,2.8vw,22px);
+  border-radius:9px;
+}
+.choose-banner{gap:clamp(10px,2.4vw,22px);align-items:center}
+.choose-copy{display:flex;flex-direction:column;justify-content:center;gap:clamp(4px,.8vw,8px)}
+.choose-title{
+  font-size:clamp(20px,4.5vw,34px)!important;
+  line-height:1.16!important;
+  letter-spacing:-.025em;
+  font-weight:800;
+  text-wrap:balance;
+}
+.choose-sub{
+  font-size:clamp(15px,3.25vw,25px)!important;
+  line-height:1.22!important;
+  margin-top:0!important;
+  letter-spacing:-.01em;
+}
+.choose-illustration{
+  width:clamp(94px,22vw,160px);
+  height:clamp(94px,22vw,160px);
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.32));
+}
+
+.grid-section{padding:clamp(7px,1.4vw,11px) 10px}
+.keno-grid{gap:clamp(3px,.55vw,5px)}
+.grid-cell{
+  font-size:clamp(14px,3.55vw,26px)!important;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.015em;
+  border-radius:5px;
+}
+.controls-wrapper{padding-inline:10px}
+.bet-stepper{margin-bottom:clamp(8px,1.4vw,11px);gap:clamp(3px,.7vw,6px)}
+.ctrl-step-btn{flex:0 0 clamp(38px,8vw,58px)}
+.bet-amt-val{font-size:clamp(23px,4.8vw,35px);line-height:1;font-variant-numeric:tabular-nums}
+.quick-chip{font-size:clamp(13px,2.8vw,21px);font-weight:800}
+.main-bet-btn{line-height:1.1;letter-spacing:.015em}
+
+.tabs-bar{margin-top:clamp(17px,3.4vw,27px);gap:clamp(4px,.9vw,9px);padding-inline:10px;align-items:stretch}
+.tab-item{
+  min-height:42px;
+  padding:9px 2px 10px;
+  gap:clamp(3px,.65vw,6px);
+  font-size:clamp(10px,2.35vw,18px)!important;
+  line-height:1.1;
+  letter-spacing:-.015em;
+}
+.tab-item .ic{flex:none;width:clamp(16px,3vw,23px);height:clamp(16px,3vw,23px)}
+.subview{padding:clamp(9px,1.8vw,14px) 12px}
+.feed-counts-line{font-size:clamp(12px,2.35vw,18px);line-height:1.35;margin-bottom:clamp(8px,1.5vw,12px)}
+.ticket-row{padding:clamp(6px,1.2vw,9px);gap:clamp(5px,1vw,8px)}
+.ticket-user-line{font-size:clamp(13px,2.45vw,19px);line-height:1.25}
+.ticket-slot{font-size:clamp(12px,2.5vw,19px);line-height:1;font-variant-numeric:tabular-nums}
+.ticket-bottom-line{font-size:clamp(12px,2.25vw,17px);line-height:1.3;gap:8px}
+
+/* Draw-ID/time headings get breathing room without changing their content or order. */
+.history-round-heading{
+  min-height:48px;
+  padding:9px clamp(5px,1.2vw,10px) 8px;
+  margin:clamp(5px,1vw,8px) 0;
+  gap:10px;
+  font-size:clamp(12px,2.25vw,17px);
+  line-height:1.35;
+  font-variant-numeric:tabular-nums;
+  flex-wrap:wrap;
+}
+.history-round-heading>span{min-width:0;overflow-wrap:anywhere}
+.history-ticket{padding:clamp(6px,1.1vw,9px);margin-bottom:clamp(6px,1vw,9px)}
+.history-ticket .ticket-numbers-grid{gap:clamp(2px,.45vw,4px)}
+.history-ticket .ticket-slot{height:clamp(30px,5.8vw,46px);font-size:clamp(11px,2.35vw,18px);line-height:1}
+.history-ticket .ticket-bottom-line{margin-top:5px;padding-top:2px;line-height:1.35}
+.result-row-card{padding:clamp(6px,1vw,9px);gap:clamp(6px,1.1vw,9px)}
+.res-draw-col{line-height:1.35;overflow-wrap:anywhere}
+.res-mini-ball{font-variant-numeric:tabular-nums;line-height:1.25}
+.table-leaders th,.table-leaders td{line-height:1.3}
+
+@media(max-width:420px){
+  header.brand-bar{gap:6px;padding-inline:8px}
+  .brand-logo{min-width:68px;width:68px}
+  .header-pill{padding-inline:7px;gap:5px}
+  .balance-val{font-size:clamp(11px,3vw,13px)}
+  .round-id{font-size:clamp(9px,2.5vw,11px)}
+  .verified-icon{width:18px;height:18px}
+  .choose-illustration{width:clamp(88px,22vw,102px);height:clamp(88px,22vw,102px)}
+  .choose-banner{gap:9px}
+  .choose-title{font-size:clamp(18px,4.8vw,21px)!important;letter-spacing:-.02em}
+  .choose-sub{font-size:clamp(14px,3.6vw,16px)!important}
+  .tab-item{flex:0 0 auto;min-width:max-content;padding-inline:2px;font-size:10px!important}
+  .tab-item .ic{width:16px;height:16px}
+  .history-round-heading{align-items:flex-start;flex-direction:column;gap:2px;min-height:0}
+}
+@media(min-width:600px){
+  .choose-title{font-size:clamp(28px,4.5vw,36px)!important}
+  .history-round-heading{flex-direction:row;align-items:center}
+}
+
+
+
+/* FIX: keep the 10/80/1 illustration on the LEFT and the Choose 10 numbers text on its RIGHT */
+.selection-view #default-banner.choose-banner{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  text-align:left !important;
+  gap:clamp(10px,2.4vw,22px) !important;
+}
+.selection-view #default-banner .choose-illustration{
+  order:0 !important;
+  flex:0 0 clamp(88px,22vw,112px) !important;
+  width:clamp(88px,22vw,112px) !important;
+  height:clamp(88px,22vw,112px) !important;
+  object-fit:contain !important;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.32)) !important;
+}
+.selection-view #default-banner .choose-copy{
+  order:1 !important;
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  text-align:left !important;
+}
+@media(max-width:360px){
+  .selection-view #default-banner.choose-banner{gap:7px !important;padding-inline:8px !important}
+  .selection-view #default-banner .choose-illustration{flex-basis:78px !important;width:78px !important;height:78px !important}
+  .selection-view #default-banner .choose-title{font-size:clamp(16px,4.7vw,19px) !important}
+  .selection-view #default-banner .choose-sub{font-size:clamp(13px,3.5vw,15px) !important}
+}
+
+/* Final timer override: local timerfont.ttf, same responsive size, no glow or shadow. */
+.radar-timer,.radar-timer.live{font-family:"TimerFont",monospace!important;font-size:clamp(18px,3.7vw,25px)!important;font-weight:400!important;letter-spacing:.045em!important;color:#fff!important;text-shadow:none!important;filter:none!important;animation:none!important;line-height:1.25!important}
+.radar-timer .timer-slash{color:#43f3a4!important;text-shadow:none!important}
+/* During selection/possible-win display, show only the relevant view; the choose banner is not part of possible-win. */
+.selection-view #default-banner[style*="display: none"]{display:none!important}
+#results-sync-status{display:none!important}
+.result-source-tag{display:none!important}
 </style>
 </head>
 <body>
@@ -346,7 +511,7 @@ header.brand-bar{min-height:48px;padding:5px 10px;gap:8px;background:linear-grad
     </section>
 
     <section class="subview" id="view-history"><div class="ticket-list" id="history-container"></div></section>
-    <section class="subview" id="view-results"><div class="ticket-list" id="results-container"></div></section>
+    <section class="subview" id="view-results"><div class="note" id="results-sync-status" role="status">Connecting to server results…</div><div class="ticket-list" id="results-container"></div></section>
     <section class="subview" id="view-statistics">
       <div class="note" id="stats-label">Live number frequency calculated from rolling draw history.</div>
       <div class="stats-scroll-list" id="stats-bars-container"></div>
@@ -390,7 +555,7 @@ const postParent = m => { try { parent.postMessage(m, '*'); } catch (e) {} };
 addEventListener('message', e => {
   if (e.source !== parent) return;
   const d = e.data || {};
-  if (d.type === 'INIT' && d.initData) { INIT_DATA = d.initData; ready = true; refreshBalance(); initPaytable(); }
+  if (d.type === 'INIT' && d.initData) { INIT_DATA = d.initData; ready = true; refreshBalance(); initPaytable(); syncServerResults(); }
   if (d.type === 'UPDATE_BALANCE') refreshBalance();
 });
 postParent({ type: 'GAME_READY' });
@@ -932,25 +1097,76 @@ function updateLiveStatistics() {
 
 // ---------------- Results & Pre-Populated Historical Draws ----------------
 function initPrePopulatedResults() {
-  const c = $('results-container'); c.innerHTML = '';
-  // 12 Realistic historical rounds so new players immediately see past outcomes
-  const historicalDraws = [
-    { id: 64104, time: '15:16', balls: [51,23,46,34,33,4,27,60,42,54,57,12,48,55,13,6,39,3,18,69] },
-    { id: 64103, time: '15:14', balls: [10,26,71,1,54,69,36,22,48,39,51,11,15,70,38,42,60,18,25,67] },
-    { id: 64102, time: '15:13', balls: [19,56,20,55,48,63,64,23,51,38,2,77,60,24,41,12,48,66,7,30] },
-    { id: 64101, time: '15:11', balls: [5,41,55,67,74,18,35,57,13,63,22,34,70,9,80,12,4,33,49,66] },
-    { id: 64100, time: '15:10', balls: [24,20,53,66,18,60,51,39,8,29,7,33,40,77,4,58,79,16,34,68] },
-    { id: 64099, time: '15:08', balls: [30,73,7,62,56,24,18,35,57,13,63,65,48,25,39,11,51,27,77,41] },
-    { id: 64098, time: '15:07', balls: [9,47,62,12,25,42,80,79,78,69,67,68,57,58,59,58,59,60,47,46] },
-    { id: 64097, time: '15:05', balls: [79,45,1,19,35,58,63,56,23,37,4,73,71,72,61,62,63,80,70,60] }
-  ];
-  historicalDraws.forEach(d => {
-    addResultRecord(d.id, d.balls, d.time);
-    drawStatsHistory.push(d.balls);
-  });
+  // Do not generate local/demo rows. The Results view remains empty until valid server data arrives.
+  const container = $('results-container');
+  if (container) container.innerHTML = '';
+  const status = $('results-sync-status');
+  if (status) status.textContent = '';
 }
 
-function addResultRecord(id, balls, timeStr) {
+function normalizeServerDraw(row) {
+  if (!row || typeof row !== 'object') return null;
+  const balls = row.balls || row.numbers || row.drawnNumbers || row.result || row.draw;
+  if (!Array.isArray(balls)) return null;
+  const clean = balls.map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= 80).slice(0,20);
+  if (clean.length !== 20) return null;
+  return {
+    id: row.id ?? row.drawId ?? row.roundId ?? row.round_id ?? 'SERVER',
+    time: row.time ?? row.createdAt ?? row.created_at ?? row.timestamp ?? '',
+    balls: clean
+  };
+}
+
+let serverResultKeys = new Set();
+let resultSyncBusy = false;
+async function syncServerResults() {
+  if (resultSyncBusy || !ready) return;
+  resultSyncBusy = true;
+  // Try common read-only Keno history routes; only rows returned and validated by the API are marked server-verified.
+  const routes = ['/api/keno/results', '/api/keno/history', '/api/keno/rounds'];
+  try {
+    for (const route of routes) {
+      const d = await api(route);
+      if (!d || d.success === false) continue;
+      const rows = Array.isArray(d) ? d : (d.results || d.history || d.rounds || d.data || d.draws || []);
+      if (!Array.isArray(rows) || !rows.length) continue;
+      const normalized = rows.map(normalizeServerDraw).filter(Boolean);
+      if (!normalized.length) continue;
+      const c = $('results-container');
+      // Server data becomes the authoritative list; remove preview rows and rebuild newest-first.
+      c.innerHTML = '';
+      serverResultKeys.clear();
+      normalized.slice(0,100).forEach(row => {
+        const key = String(row.id);
+        if (serverResultKeys.has(key)) return;
+        serverResultKeys.add(key);
+        addResultRecord(row.id, row.balls, formatResultTime(row.time), 'server');
+        drawStatsHistory.push(row.balls);
+      });
+      if (drawStatsHistory.length > 100) drawStatsHistory = drawStatsHistory.slice(-100);
+      updateLiveStatistics();
+      const status = $('results-sync-status');
+      if (status) status.textContent = '';
+      return;
+    }
+    const status = $('results-sync-status');
+    if (status) status.textContent = '';
+  } catch (e) {
+    const status = $('results-sync-status');
+    if (status) status.textContent = '';
+  } finally {
+    resultSyncBusy = false;
+  }
+}
+
+function formatResultTime(value) {
+  if (!value) return '';
+  const d = typeof value === 'number' ? new Date(value < 1e12 ? value * 1000 : value) : new Date(value);
+  return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+function addResultRecord(id, balls, timeStr, source = 'server') {
+  if (source !== 'server') return;
   const container = $('results-container');
   const card = document.createElement('div');
   card.className = 'result-row-card';
@@ -959,9 +1175,9 @@ function addResultRecord(id, balls, timeStr) {
     <div class="res-draw-col">
       <div style="font-weight:bold;font-size:11px;color:var(--accent-green-bright);display:flex;align-items:center;gap:3px;">
         <svg class="verified-icon" viewBox="0 0 24 24" aria-label="Verified"><path d="M12 1.4 3.2 4.7v6.1c0 5.5 3.7 9.7 8.8 11.8 5.1-2.1 8.8-6.3 8.8-11.8V4.7L12 1.4Z"/><path d="m7.2 11.9 3.1 3.1 6.7-7" fill="none" stroke="#e9fff3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        ${id}
+        ${esc(id)}
       </div>
-      <div style="font-size:9px;color:var(--text-muted);">${time}</div>
+      <div style="font-size:9px;color:var(--text-muted);">${esc(time)}</div>
     </div>
     <div class="res-balls-grid">
       ${balls.map(n => `<div class="res-mini-ball">${n}</div>`).join('')}
@@ -973,12 +1189,20 @@ function addResultRecord(id, balls, timeStr) {
 function renderHistoryView() {
   const c = $('history-container');
   if (!fullHistory.length) { c.innerHTML = '<div class="empty-note">No betting history found</div>'; return; }
-  c.innerHTML = fullHistory.map(h => `
-    <div class="ticket-row">
-      <div class="ticket-user-line"><span>Draw ID: ${h.roundId}</span><span class="${h.status === 'WON' ? 'status-won' : 'status-lost'}">${h.status}</span></div>
-      <div class="ticket-numbers-grid">${h.picks.map(p => `<div class="ticket-slot">${p}</div>`).join('')}</div>
-      <div class="ticket-bottom-line"><span>Bet: ${h.amount} ETB</span><span>${h.status === 'WON' ? '+' + h.win.toFixed(0) + ' ETB' : '0 ETB'} (${h.hits} hits)</span></div>
-    </div>
+  const groups = new Map();
+  fullHistory.forEach(h => {
+    const key = String(h.roundId);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(h);
+  });
+  c.innerHTML = [...groups.entries()].map(([roundId, tickets]) => `
+    <div class="history-round-heading"><span>◆ &nbsp;Draw ID: ${esc(roundId)}</span><span>${new Date(Math.max(...tickets.map(t=>Number(t.time)||Date.now()))).toLocaleString([], {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span></div>
+    ${tickets.map(h => `
+      <div class="history-ticket">
+        <div class="ticket-numbers-grid">${Array.from({length:10}, (_,i) => h.picks[i] !== undefined ? `<div class="ticket-slot ${h.status === 'WON' && h.picks[i] ? 'hit' : ''}">${h.picks[i]}</div>` : '<div class="ticket-slot empty"></div>').join('')}</div>
+        <div class="ticket-bottom-line"><span>Bet ${Number(h.amount).toFixed(0)}</span><span class="${h.status === 'WON' ? 'status-won' : 'status-lost'}">${h.status === 'WON' ? '+' + Number(h.win).toFixed(0) : '0'} ETB</span></div>
+      </div>
+    `).join('')}
   `).join('');
 }
 
@@ -1082,6 +1306,8 @@ window.addEventListener('DOMContentLoaded', () => {
   updateLiveStatistics();
   renderHistoryView();
   loadPublicLeaders();
+  syncServerResults();
+  setInterval(syncServerResults, 15000);
 });
 </script>
 </body>
