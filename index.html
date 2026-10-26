@@ -535,90 +535,196 @@ header.brand-bar{
   </div>
 </div>
 
+
 <script>
 /**
- * FAST KENO (Official Ethiopian Keno Fast Paytable + Slow ~950ms Draw + Rotating Sonar)
+ * FAST KENO — Production Hybrid Engine
+ * 70% Certified Server RNG + Rich Demo Social Proof & Live Dynamic Counter
  */
 const API = "https://keno-dash-server.onrender.com";
 let INIT_DATA = "", serverBalance = 0, shownBalance = 0, ready = false;
+let serverOffsetMs = 0;
+
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 async function api(path, opts = {}) {
   try {
-    const r = await fetch(API + path, { ...opts, headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': INIT_DATA } });
+    const r = await fetch(API + path, {
+      ...opts,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-telegram-init-data': INIT_DATA,
+        ...(opts.headers || {})
+      }
+    });
     return await r.json();
-  } catch (e) { return { success: false, message: 'Connection problem' }; }
+  } catch (e) {
+    return { success: false, message: 'Connection problem' };
+  }
 }
+
 const postParent = m => { try { parent.postMessage(m, '*'); } catch (e) {} };
 
 addEventListener('message', e => {
   if (e.source !== parent) return;
   const d = e.data || {};
-  if (d.type === 'INIT' && d.initData) { INIT_DATA = d.initData; ready = true; refreshBalance(); initPaytable(); syncServerResults(); }
+  if (d.type === 'INIT' && d.initData) {
+    INIT_DATA = d.initData;
+    ready = true;
+    syncServerClock();
+    refreshBalance();
+    initPaytable();
+    syncServerResults();
+    loadPublicLeaders();
+  }
   if (d.type === 'UPDATE_BALANCE') refreshBalance();
 });
 postParent({ type: 'GAME_READY' });
 
-async function refreshBalance() {
-  const d = await api('/api/user/init');
-  if (d && d.success && !isDrawingPhase) {
-    serverBalance = d.balance;
-    shownBalance = d.balance;
-    showBalance(false);
+// ---------------- 1. Server Clock Sync ----------------
+async function syncServerClock() {
+  try {
+    const d = await api('/api/keno/round/current');
+    if (d && d.serverTime) {
+      serverOffsetMs = d.serverTime - Date.now();
+    }
+  } catch (e) {}
+}
+setInterval(syncServerClock, 30000);
+
+// ---------------- 2. Global Game Timing ----------------
+const BET_WINDOW = 60;
+const DRAW_WINDOW = 20;
+const TOTAL_CYCLE = 80;
+const MIN_BET = 2, MAX_BET = 1000, MAX_PICKS = 10;
+const MAX_PAYOUT = 30000;
+
+function getGlobalRound() {
+  const nowMs = Date.now() + serverOffsetMs;
+  const nowSec = Math.floor(nowMs / 1000);
+  const roundId = 64105 + Math.floor(nowSec / TOTAL_CYCLE);
+  const cycleSec = nowSec % TOTAL_CYCLE;
+  const isDrawing = cycleSec >= BET_WINDOW;
+  const remainingSec = isDrawing ? (TOTAL_CYCLE - cycleSec) : (BET_WINDOW - cycleSec);
+  const roundStartSec = Math.floor(nowSec / TOTAL_CYCLE) * TOTAL_CYCLE;
+  const betClosesAtMs = (roundStartSec + BET_WINDOW) * 1000;
+
+  return { roundId, cycleSec, isDrawing, remainingSec, nowMs, betClosesAtMs };
+}
+
+// ---------------- 3. Official 70% RTP Paytable ----------------
+let paytable = {
+  "1": { 1: 3 },
+  "2": { 2: 11.5 },
+  "3": { 2: 1.5, 3: 36 },
+  "4": { 2: 1, 3: 6, 4: 62 },
+  "5": { 2: 0.5, 3: 2, 4: 16.5, 5: 233 },
+  "6": { 3: 1.5, 4: 8, 5: 49, 6: 814 },
+  "7": { 3: 1.5, 4: 3.5, 5: 18.5, 6: 91, 7: 1828 },
+  "8": { 4: 3.5, 5: 11.5, 6: 57, 7: 341, 8: 5684 },
+  "9": { 4: 2, 5: 5.5, 6: 26, 7: 158, 8: 1056, 9: 10561 },
+  "10": { 0: 1, 5: 3.5, 6: 18.5, 7: 98, 8: 490, 9: 3061, 10: 12243 }
+};
+
+async function initPaytable() {
+  const d = await api('/api/keno/paytable');
+  if (d && d.success && d.paytable) {
+    paytable = d.paytable;
+    updatePossibleWin();
   }
 }
+
+// ---------------- 4. State & Controls ----------------
+let currentBetAmount = 4, selectedNumbers = new Set();
+let isDrawingPhase = false, isRequestInFlight = false, soundEnabled = true;
+let myActiveTickets = [], fullHistory = [];
+let drawStatsHistory = [];
+let hotSet = new Set(), coldSet = new Set();
+let drawInProgress = false;
+
+// 🔥 DEMO ማህበራዊ ውሂብ (ለጀማሪዎች ጨዋታውን ሞቅ የሚያደርግ)
+let dynamicAllCount = 2364;
+let dynamicLiveTickets = [], simTicketSeq = 100;
+const PLAYER_NAMES = ["b***h", "d***k", "j***v", "v***w", "s***k", "y***o", "m***e", "t***i", "k***b", "a***m", "09***1", "h***s", "r***l"];
+const STAKE_AMOUNTS = [10, 20, 50, 100, 150, 200, 300];
+
+function computeBaseRoundBets(rId) {
+  return 1800 + ((rId * 317) % 18000);
+}
+
+function createPlayerTicket() {
+  simTicketSeq++;
+  const name = PLAYER_NAMES[Math.floor(Math.random() * PLAYER_NAMES.length)];
+  const pickCount = Math.floor(Math.random() * 4) + 2; // 2 to 5 ቁጥሮች
+  const pool = Array.from({ length: 80 }, (_, i) => i + 1).sort(() => Math.random() - .5);
+  return {
+    id: `sim_${simTicketSeq}`,
+    user: name,
+    picks: pool.slice(0, pickCount),
+    amount: STAKE_AMOUNTS[Math.floor(Math.random() * STAKE_AMOUNTS.length)],
+    status: 'Waiting'
+  };
+}
+
+function initPlayerFeed() {
+  dynamicLiveTickets = [
+    { id: 'sim_1', user: 'b***h', picks: [80, 69], amount: 50, status: 'Waiting' },
+    { id: 'sim_2', user: 'd***k', picks: [26, 47, 69], amount: 100, status: 'Waiting' },
+    { id: 'sim_3', user: 'y***o', picks: [13, 26, 39], amount: 150, status: 'Waiting' },
+    { id: 'sim_4', user: 'j***v', picks: [21, 55], amount: 20, status: 'Waiting' },
+    { id: 'sim_5', user: 'v***w', picks: [3, 14, 25], amount: 100, status: 'Waiting' },
+    { id: 'sim_6', user: 'a***m', picks: [7, 18, 42, 60], amount: 200, status: 'Waiting' }
+  ];
+  renderPlayerFeed();
+}
+
+function renderPlayerFeed() {
+  const c = $('live-dynamic-tickets-container');
+  if (!c) return;
+  c.innerHTML = dynamicLiveTickets.map(t => {
+    const slots = Array.from({ length: 10 }, (_, i) => {
+      const p = t.picks[i];
+      return p !== undefined ? `<div class="ticket-slot" id="dslot_${t.id}_${p}">${p}</div>` : '<div class="ticket-slot empty"></div>';
+    }).join('');
+    return `
+      <div class="ticket-row" id="prow_${t.id}">
+        <div class="ticket-user-line"><span>${t.user}</span></div>
+        <div class="ticket-numbers-grid">${slots}</div>
+        <div class="ticket-bottom-line"><span>Bet ${t.amount}</span><span class="status-waiting" id="dstatus_${t.id}">${t.status}</span></div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function refreshBalance() {
+  const d = await api('/api/user/init');
+  if (d && d.success) {
+    serverBalance = d.balance;
+    if (!isDrawingPhase) {
+      shownBalance = d.balance;
+      showBalance(false);
+    }
+    if (Array.isArray(d.myTickets) && d.myTickets.length > 0 && myActiveTickets.length === 0) {
+      myActiveTickets = d.myTickets.map((t, idx) => ({
+        id: t.id,
+        num: idx + 1,
+        picks: t.picks,
+        amount: t.amount,
+        status: t.status === 'PENDING' ? 'Waiting' : t.status,
+        payout: t.payout || 0
+      }));
+      renderActiveUserTickets();
+    }
+  }
+}
+
 function showBalance(post) {
   $('lbl-balance').textContent = Number(shownBalance).toFixed(2);
   if (post) postParent({ type: 'BALANCE_UPDATE', newBalance: serverBalance });
 }
 
-// ---------------- Official Ethiopian Fast Keno Paytable & Rules ----------------
-const BET_WINDOW = 60;
-const DRAW_WINDOW = 20;
-const TOTAL_CYCLE = 80;
-const MIN_BET = 2, MAX_BET = 1000, MAX_PICKS = 10;
-const MAX_PAYOUT = 30000; // Capped at 30,000 ETB exactly as shown in screenshot
-
-// Complete Official Odds matching Image 1 & standard rules
-let paytable = {
-  "1": { 1: 3.5 },
-  "2": { 1: 1, 2: 10 },
-  "3": { 2: 2, 3: 50 },
-  "4": { 2: 1.5, 3: 10, 4: 80 },
-  "5": { 2: 1, 3: 3, 4: 30, 5: 150 },
-  "6": { 3: 2, 4: 15, 5: 60, 6: 500 },
-  "7": { 0: 1, 3: 2, 4: 4, 5: 20, 6: 80, 7: 1000 },
-  "8": { 0: 1, 4: 5, 5: 15, 6: 50, 7: 200, 8: 2000 },
-  "9": { 0: 2, 4: 2, 5: 10, 6: 25, 7: 125, 8: 1000, 9: 5000 },
-  "10": { 0: 2, 5: 5, 6: 30, 7: 100, 8: 300, 9: 2000, 10: 10000 }
-};
-
-let currentBetAmount = 4, selectedNumbers = new Set();
-let isDrawingPhase = false, isRequestInFlight = false, soundEnabled = false, skipRequested = false;
-let myActiveTickets = [], fullHistory = [];
-let dynamicLiveTickets = [], simTicketSeq = 100;
-let dynamicAllCount = 2364;
-
-let drawStatsHistory = [];
-let hotSet = new Set(), coldSet = new Set();
-
-const PLAYER_NAMES = ["b***h", "d***k", "j***v", "v***w", "s***k", "y***o", "m***e", "t***i", "k***b", "a***m", "09***1"];
-const STAKE_AMOUNTS = [128, 150, 100, 200, 50, 300];
-
-// ---------------- 24/7 Clock Determination ----------------
-function getGlobalRound() {
-  const nowSec = Math.floor(Date.now() / 1000);
-  const roundId = 64105 + Math.floor(nowSec / TOTAL_CYCLE);
-  const cycleSec = nowSec % TOTAL_CYCLE;
-  return { roundId, cycleSec };
-}
-
-function computeBaseRoundBets(rId) {
-  return 1200 + ((rId * 317) % 32800);
-}
-
-// ---------------- Audio Synthesizer ----------------
+// ---------------- 5. Audio Synthesizer ----------------
 let audioCtx = null;
 function playSynth(freq = 600, duration = .06, type = 'sine') {
   if (!soundEnabled) return;
@@ -636,8 +742,7 @@ function playSynth(freq = 600, duration = .06, type = 'sine') {
   } catch (e) {}
 }
 
-
-// ---------------- Grid & Picks ----------------
+// ---------------- 6. Grid & Picks ----------------
 function buildGrid() {
   const g = $('keno-grid'); g.innerHTML = '';
   for (let i = 1; i <= 80; i++) {
@@ -689,16 +794,6 @@ function clearPicks() {
   updatePossibleWin();
 }
 
-function autoPick(count = 5) {
-  if (isDrawingPhase) return;
-  clearPicks(); playSynth(750, .05);
-  const pool = Array.from({ length: 80 }, (_, i) => i + 1).sort(() => Math.random() - .5);
-  pool.slice(0, count).forEach(n => selectedNumbers.add(n));
-  syncGridSelections();
-  updatePossibleWin();
-}
-
-// Update top Possible Win & Odds exactly matching Image 1
 function updatePossibleWin() {
   const def = $('default-banner'), win = $('possible-win-view'), count = selectedNumbers.size;
   if (count === 0 || !paytable) { def.style.display = 'block'; win.style.display = 'none'; return; }
@@ -727,7 +822,6 @@ function updatePossibleWin() {
   }
 }
 
-// ---------------- Bet Input Controls ----------------
 function setBet(v) {
   v = Math.round(v * 100) / 100;
   currentBetAmount = Math.min(MAX_BET, Math.max(MIN_BET, v));
@@ -738,7 +832,7 @@ function adjustBet(d) { if (isDrawingPhase) return; playSynth(450, .02); setBet(
 function multiplyBet(m) { if (isDrawingPhase) return; playSynth(500, .02); setBet(currentBetAmount * m); }
 function setMaxBet() { if (isDrawingPhase) return; setBet(Math.min(MAX_BET, Math.floor(serverBalance) || MIN_BET)); }
 
-// ---------------- Place a Ticket ----------------
+// ---------------- 7. Secure Bet Placement ----------------
 async function placeKenoTicket() {
   if (isDrawingPhase || isRequestInFlight) return;
   if (selectedNumbers.size === 0) return showToast('Choose at least 1 number', 'error');
@@ -749,19 +843,31 @@ async function placeKenoTicket() {
     return;
   }
 
+  const { roundId, cycleSec } = getGlobalRound();
+  if (cycleSec >= BET_WINDOW) {
+    return showToast('Betting closed for this round', 'error');
+  }
+
   isRequestInFlight = true;
   const btn = $('btn-bet');
   btn.disabled = true; btn.classList.add('accepted');
   $('btn-bet-label').textContent = 'BET ACCEPTED';
   postParent({ type: 'BET_STARTED' });
 
-  const { roundId } = getGlobalRound();
   const picks = [...selectedNumbers];
   const amount = currentBetAmount;
+  const idempotencyKey = (typeof crypto.randomUUID === 'function') 
+    ? crypto.randomUUID() 
+    : 'idemp_' + Date.now() + '_' + Math.random().toString(36).substring(2);
 
   const res = await api('/api/bet/play', {
     method: 'POST',
-    body: JSON.stringify({ gameName: 'KenoFast', betAmount: amount, clientData: { picks } })
+    body: JSON.stringify({
+      gameName: 'KenoFast',
+      betAmount: amount,
+      clientData: { picks },
+      idempotencyKey
+    })
   });
 
   if (!res || !res.success) {
@@ -773,27 +879,27 @@ async function placeKenoTicket() {
     return;
   }
 
-  // Deduct stake only; win balance revealed after the 20th ball lands
   serverBalance = res.newBalance;
-  shownBalance -= amount;
+  shownBalance = res.newBalance;
   showBalance(false);
 
   playSynth(850, .08);
 
   const tIndex = myActiveTickets.length + 1;
   const ticketObj = {
-    id: `usertkt_${Date.now()}_${tIndex}`,
+    id: res.ticketId || `tkt_${Date.now()}`,
     num: tIndex,
     picks: picks,
     amount: amount,
     roundId: roundId,
     status: 'Waiting',
-    serverRes: res
+    payout: 0
   };
   myActiveTickets.push(ticketObj);
   renderActiveUserTickets();
 
-  dynamicAllCount += Math.floor(Math.random() * 5) + 1;
+  // ቆራጭ ቁጥሩን ወዲያው ያሳድጋል
+  dynamicAllCount += Math.floor(Math.random() * 4) + 1;
   $('lbl-all-count').textContent = dynamicAllCount.toLocaleString();
 
   isRequestInFlight = false;
@@ -819,7 +925,7 @@ function renderActiveUserTickets() {
     card.className = 'ticket-row user-ticket';
     card.id = 'trow_' + t.id;
     card.innerHTML = `
-      <div class="ticket-user-line"><span>${t.num} My Ticket</span></div>
+      <div class="ticket-user-line"><span>#${t.id} (Ticket ${t.num})</span></div>
       <div class="ticket-numbers-grid">${slots}</div>
       <div class="ticket-bottom-line"><span>Bet ${t.amount.toFixed(0)}</span><span class="status-waiting" id="status_${t.id}">${t.status}</span></div>
     `;
@@ -827,59 +933,15 @@ function renderActiveUserTickets() {
   });
 }
 
-// ---------------- Simulated Community Feed ----------------
-function createPlayerTicket() {
-  simTicketSeq++;
-  const name = PLAYER_NAMES[Math.floor(Math.random() * PLAYER_NAMES.length)];
-  const pickCount = Math.floor(Math.random() * 3) + 2; // 2 to 4 picks
-  const pool = Array.from({ length: 80 }, (_, i) => i + 1).sort(() => Math.random() - .5);
-  return {
-    id: `sim_${simTicketSeq}`,
-    user: name,
-    picks: pool.slice(0, pickCount),
-    amount: STAKE_AMOUNTS[Math.floor(Math.random() * STAKE_AMOUNTS.length)],
-    status: 'Waiting'
-  };
-}
-
-function initPlayerFeed() {
-  dynamicLiveTickets = [
-    { id: 'sim_1', user: 'b***h', picks: [80, 69], amount: 128, status: 'Waiting' },
-    { id: 'sim_2', user: 'd***k', picks: [26, 47, 69], amount: 150, status: 'Waiting' },
-    { id: 'sim_3', user: 'b***h', picks: [13, 26, 39], amount: 128, status: 'Waiting' },
-    { id: 'sim_4', user: 'j***v', picks: [21, 55], amount: 100, status: 'Waiting' },
-    { id: 'sim_5', user: 'v***w', picks: [3, 14, 25], amount: 100, status: 'Waiting' }
-  ];
-  renderPlayerFeed();
-}
-
-function renderPlayerFeed() {
-  const c = $('live-dynamic-tickets-container');
-  c.innerHTML = dynamicLiveTickets.map(t => {
-    const slots = Array.from({ length: 10 }, (_, i) => {
-      const p = t.picks[i];
-      return p !== undefined ? `<div class="ticket-slot" id="dslot_${t.id}_${p}">${p}</div>` : '<div class="ticket-slot empty"></div>';
-    }).join('');
-    return `
-      <div class="ticket-row" id="prow_${t.id}">
-        <div class="ticket-user-line"><span>${t.user}</span></div>
-        <div class="ticket-numbers-grid">${slots}</div>
-        <div class="ticket-bottom-line"><span>Bet ${t.amount}</span><span class="status-waiting" id="dstatus_${t.id}">${t.status}</span></div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ---------------- 24/7 Global Clock Loop ----------------
+// ---------------- 8. 24/7 Clock Loop & Dynamic Counter ----------------
 let lastPhase = 'betting';
-let drawInProgress = false;
 
 setInterval(() => {
-  const { roundId, cycleSec } = getGlobalRound();
-  $('lbl-round-id').textContent = roundId;
+  const round = getGlobalRound();
+  $('lbl-round-id').textContent = round.roundId;
 
-  if (cycleSec < BET_WINDOW) {
-    // BETTING PHASE
+  if (!round.isDrawing) {
+    // BETTING STAGE (0 - 60s)
     isDrawingPhase = false;
     drawInProgress = false;
 
@@ -887,34 +949,37 @@ setInterval(() => {
     $('controls-section').style.display = 'block';
     $('draw-view').style.display = 'none';
     $('selection-view').style.display = 'flex';
-    // Skip control intentionally removed; preserve the complete draw sequence.
     $('radar-arena').classList.remove('drawing');
 
-    const remSec = BET_WINDOW - cycleSec;
+    const remSec = round.remainingSec;
     const tEl = $('stage-timer');
     tEl.classList.remove('live');
     tEl.innerHTML = `00<span class="timer-slash">:</span>${remSec < 10 ? '0' : ''}${remSec}`;
 
     if (lastPhase === 'drawing') {
       lastPhase = 'betting';
-      dynamicAllCount = computeBaseRoundBets(roundId);
+      dynamicAllCount = computeBaseRoundBets(round.roundId);
       $('lbl-all-count').textContent = dynamicAllCount.toLocaleString();
       myActiveTickets = [];
       renderActiveUserTickets();
-      initPlayerFeed();
+      initPlayerFeed(); // አዳዲስ Demo ተጫዋቾችን ያዘጋጃል
       $('btn-bet').disabled = false;
+      refreshBalance();
     }
 
+    // ቆራጭ ቁጥሩ ያለማቋረጥ እንዲጨምር ያደርጋል
     if (remSec % 2 === 0) {
-      dynamicAllCount += Math.floor(Math.random() * 85) + 12;
+      dynamicAllCount += Math.floor(Math.random() * 55) + 12;
       $('lbl-all-count').textContent = dynamicAllCount.toLocaleString();
-      if (dynamicLiveTickets.length < 8 && Math.random() < 0.6) {
+      
+      // አዳዲስ Demo ተጫዋቾች ወደ ዝርዝሩ እንዲገቡ ያደርጋል
+      if (dynamicLiveTickets.length < 12 && Math.random() < 0.65) {
         dynamicLiveTickets.unshift(createPlayerTicket());
         renderPlayerFeed();
       }
     }
   } else {
-    // 20-BALL DRAW PHASE
+    // DRAW STAGE (60 - 80s)
     isDrawingPhase = true;
     lastPhase = 'drawing';
 
@@ -925,138 +990,167 @@ setInterval(() => {
     $('controls-section').style.display = 'none';
     $('selection-view').style.display = 'none';
     $('draw-view').style.display = 'flex';
-    // Full 20-ball draw animation runs without a skip control.
-    
-    // ROTATE RADAR CONCENTRIC RINGS
     $('radar-arena').classList.add('drawing');
 
     if (!drawInProgress) {
       drawInProgress = true;
-      run20BallDraw(roundId);
+      executeSynchronizedDraw(round);
     }
   }
 }, 1000);
 
-// ---------------- 20-Ball Draw with Rotating Radar & ~950ms Suspense ----------------
-function run20BallDraw(roundId) {
-  try {
-    const tray = $('drawn-tray'); tray.innerHTML = '';
-    const big = $('current-drawn-ball');
-    $('draw-result').textContent = '';
-    skipRequested = false;
+// ---------------- 9. Synchronized 20-Ball Sequential Draw ----------------
+async function executeSynchronizedDraw(round) {
+  const tray = $('drawn-tray'); tray.innerHTML = '';
+  const big = $('current-drawn-ball');
+  $('draw-result').textContent = 'Waiting for certified draw...';
 
-    let drawn = [];
-    if (myActiveTickets.length > 0 && myActiveTickets[0].serverRes && myActiveTickets[0].serverRes.visualOutcome) {
-      drawn = myActiveTickets[0].serverRes.visualOutcome.drawnNumbers || [];
+  let drawn = null;
+
+  // ሰርቨሩ በ 60ኛው ሰከንድ ያወጣውን 20 ኳሶች ይቀበላል
+  while (!drawn) {
+    const cur = await api('/api/keno/round/current');
+    if (cur && Array.isArray(cur.drawnNumbers) && cur.drawnNumbers.length === 20) {
+      drawn = cur.drawnNumbers;
+      break;
     }
-    if (!Array.isArray(drawn) || drawn.length !== 20) {
-      const pool = Array.from({ length: 80 }, (_, i) => i + 1).sort(() => Math.random() - .5);
-      drawn = pool.slice(0, 20);
-    }
-
-    let idx = 0;
-
-    function step() {
-      if (idx >= 20) {
-        settleRound(roundId, drawn);
-        return;
-      }
-
-      const b = drawn[idx];
-      big.textContent = b;
-      big.style.animation = 'none'; void big.offsetWidth;
-      big.style.animation = 'popIn .35s cubic-bezier(.175,.885,.32,1.275)';
-
-      $('stage-timer').innerHTML = `${idx + 1}<span class="timer-slash">/</span>20`;
-
-      // Highlight hits on user tickets
-      myActiveTickets.forEach(t => {
-        if (t.picks.includes(b)) {
-          const s = $(`uslot_${t.id}_${b}`);
-          if (s) s.classList.add('hit');
-        }
-      });
-      // Highlight hits on feed tickets
-      dynamicLiveTickets.forEach(t => {
-        if (t.picks.includes(b)) {
-          const ds = $(`dslot_${t.id}_${b}`);
-          if (ds) ds.classList.add('hit');
-        }
-      });
-
-      const isUserHit = myActiveTickets.some(t => t.picks.includes(b));
-      const m = document.createElement('div');
-      m.className = 'mini-ball' + (isUserHit ? ' hit' : '');
-      m.textContent = b;
-      tray.appendChild(m);
-
-      idx++;
-      // Keep the complete 20-ball draw at the original ~950ms cadence.
-      setTimeout(step, 950);
-    }
-
-    step();
-  } catch (e) {
-    console.error("Draw loop error:", e);
+    await new Promise(r => setTimeout(r, 500));
   }
-}
-function skipDraw() { /* Intentionally disabled: all 20 balls must animate. */ }
 
-// ---------------- Settle Round & Reveal Authoritative Balance ----------------
-function settleRound(roundId, drawn) {
-  // Skip control intentionally removed; all 20 balls complete normally.
+  $('draw-result').textContent = '';
+
+  const elapsedMs = Math.max(0, (Date.now() + serverOffsetMs) - round.betClosesAtMs);
+  const startIdx = Math.min(20, Math.floor(elapsedMs / 950));
+
+  // የቀደሙትን ኳሶች በቅጽበት ይጥላል
+  for (let i = 0; i < startIdx; i++) {
+    const b = drawn[i];
+    renderBallToTray(b, i + 1, false);
+    highlightUserHits(b);
+    highlightDemoHits(b);
+  }
+
+  // የቀሩትን ኳሶች በየ 950ms ቀስ እያለ ያወጣል
+  for (let i = startIdx; i < 20; i++) {
+    const b = drawn[i];
+    big.textContent = b;
+    big.style.animation = 'none'; void big.offsetWidth;
+    big.style.animation = 'popIn .35s cubic-bezier(.175,.885,.32,1.275)';
+    $('stage-timer').innerHTML = `${i + 1}<span class="timer-slash">/</span>20`;
+
+    playSynth(700, .04);
+    highlightUserHits(b);
+    highlightDemoHits(b);
+    renderBallToTray(b, i + 1, true);
+
+    await new Promise(r => setTimeout(r, 950));
+  }
+
+  await settleRoundAuthoritative(round.roundId, drawn);
+}
+
+function renderBallToTray(b, index, animated) {
+  const tray = $('drawn-tray');
+  const isUserHit = myActiveTickets.some(t => t.picks.includes(b));
+  const m = document.createElement('div');
+  m.className = 'mini-ball' + (isUserHit ? ' hit' : '');
+  m.textContent = b;
+  tray.appendChild(m);
+}
+
+function highlightUserHits(b) {
+  myActiveTickets.forEach(t => {
+    if (t.picks.includes(b)) {
+      const s = $(`uslot_${t.id}_${b}`);
+      if (s) s.classList.add('hit');
+    }
+  });
+}
+
+function highlightDemoHits(b) {
+  dynamicLiveTickets.forEach(t => {
+    if (t.picks.includes(b)) {
+      const ds = $(`dslot_${t.id}_${b}`);
+      if (ds) ds.classList.add('hit');
+    }
+  });
+}
+
+// ---------------- 10. Authoritative Settlement + Demo Settle ----------------
+async function settleRoundAuthoritative(roundId, drawn) {
   $('stage-timer').classList.remove('live');
   $('stage-timer').textContent = 'DONE';
   $('radar-arena').classList.remove('drawing');
-
-  let totalWin = 0;
 
   drawStatsHistory.unshift(drawn);
   if (drawStatsHistory.length > 100) drawStatsHistory.pop();
   updateLiveStatistics();
 
-  myActiveTickets.forEach(t => {
-    let win = 0;
-    const hits = t.picks.filter(n => drawn.includes(n)).length;
+  let totalWin = 0;
 
-    if (t.serverRes && t.serverRes.payout !== undefined) {
-      win = Number(t.serverRes.payout) || 0;
-    } else {
-      const tableForPicks = paytable[String(t.picks.length)] || {};
-      const m = tableForPicks[hits] || 0;
-      win = Math.min(MAX_PAYOUT, Math.round(t.amount * m));
+  // 1. እውነተኛውን ተጠቃሚ ከሰርቨር ማረጋገጥ
+  try {
+    const [ticketsRes, userRes] = await Promise.all([
+      api(`/api/user/tickets?round=${roundId}`),
+      api('/api/user/init')
+    ]);
+
+    if (userRes && userRes.success) {
+      serverBalance = userRes.balance;
+      shownBalance = userRes.balance;
+      showBalance(true);
     }
 
-    const st = $('status_' + t.id);
-    if (win > 0) {
-      totalWin += win;
-      if (st) { st.textContent = `WON +${win.toFixed(0)} ETB`; st.className = 'status-won'; }
-    } else if (st) {
-      st.textContent = 'Settled'; st.className = 'status-lost';
+    if (ticketsRes && ticketsRes.success && ticketsRes.tickets) {
+      ticketsRes.tickets.forEach(st => {
+        const t = myActiveTickets.find(x => x.id == st.id);
+        const payout = Number(st.payout) || 0;
+        totalWin += payout;
+
+        if (t) {
+          t.status = st.status;
+          t.payout = payout;
+          const statusEl = $('status_' + t.id);
+          if (statusEl) {
+            if (payout > 0) {
+              statusEl.textContent = `WON +${payout.toFixed(0)} ETB`;
+              statusEl.className = 'status-won';
+            } else {
+              statusEl.textContent = 'Settled';
+              statusEl.className = 'status-lost';
+            }
+          }
+        }
+
+        fullHistory.unshift({
+          roundId: roundId,
+          picks: st.picks,
+          amount: st.amount,
+          hits: st.hits,
+          win: payout,
+          status: payout > 0 ? 'WON' : 'LOST',
+          time: Date.now()
+        });
+      });
     }
+  } catch (e) {
+    console.error('Settlement error:', e);
+  }
 
-    fullHistory.unshift({
-      roundId: t.roundId,
-      picks: t.picks,
-      amount: t.amount,
-      hits: hits,
-      win: win,
-      status: win > 0 ? 'WON' : 'LOST',
-      time: Date.now()
-    });
-  });
-
+  // 2. Demo ተጫዋቾች ማሸነፋቸውን ወይም መሸነፋቸውን ማሳየት (Visual Life)
   dynamicLiveTickets.forEach(t => {
     const hits = t.picks.filter(n => drawn.includes(n)).length;
-    const tableForPicks = paytable[String(t.picks.length)] || {};
-    const win = t.amount * (tableForPicks[hits] || 0);
+    const tableP = paytable[String(t.picks.length)] || {};
+    const win = t.amount * (tableP[hits] || 0);
     const dst = $('dstatus_' + t.id);
-    if (win > 0 && dst) { dst.textContent = `WON +${win.toFixed(0)} ETB`; dst.className = 'status-won'; }
-    else if (dst) { dst.textContent = 'Settled'; dst.className = 'status-lost'; }
+    if (win > 0 && dst) {
+      dst.textContent = `WON +${win.toFixed(0)} ETB`;
+      dst.className = 'status-won';
+    } else if (dst) {
+      dst.textContent = 'Settled';
+      dst.className = 'status-lost';
+    }
   });
-
-  shownBalance = serverBalance;
-  showBalance(true);
 
   if (totalWin > 0) {
     playSynth(880, .25, 'triangle');
@@ -1066,13 +1160,13 @@ function settleRound(roundId, drawn) {
     $('draw-result').innerHTML = `<span class="res-lose">No win this round</span>`;
   }
 
-  addResultRecord(roundId, drawn);
   renderHistoryView();
+  syncServerResults();
+  loadPublicLeaders();
   postParent({ type: 'BET_ENDED' });
-  refreshBalance();
 }
 
-// ---------------- Real Live Statistics Calculation ----------------
+// ---------------- 11. Statistics ----------------
 function updateLiveStatistics() {
   const counts = {}; for (let i = 1; i <= 80; i++) counts[i] = 0;
   drawStatsHistory.forEach(dr => dr.forEach(n => { if (counts[n] !== undefined) counts[n]++; }));
@@ -1095,95 +1189,41 @@ function updateLiveStatistics() {
   updateGridDots();
 }
 
-// ---------------- Results & Pre-Populated Historical Draws ----------------
-function initPrePopulatedResults() {
-  // Do not generate local/demo rows. The Results view remains empty until valid server data arrives.
-  const container = $('results-container');
-  if (container) container.innerHTML = '';
-  const status = $('results-sync-status');
-  if (status) status.textContent = '';
-}
-
-function normalizeServerDraw(row) {
-  if (!row || typeof row !== 'object') return null;
-  const balls = row.balls || row.numbers || row.drawnNumbers || row.result || row.draw;
-  if (!Array.isArray(balls)) return null;
-  const clean = balls.map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= 80).slice(0,20);
-  if (clean.length !== 20) return null;
-  return {
-    id: row.id ?? row.drawId ?? row.roundId ?? row.round_id ?? 'SERVER',
-    time: row.time ?? row.createdAt ?? row.created_at ?? row.timestamp ?? '',
-    balls: clean
-  };
-}
-
-let serverResultKeys = new Set();
-let resultSyncBusy = false;
+// ---------------- 12. Results Tab & Cryptographic Proof ----------------
 async function syncServerResults() {
-  if (resultSyncBusy || !ready) return;
-  resultSyncBusy = true;
-  // Try common read-only Keno history routes; only rows returned and validated by the API are marked server-verified.
-  const routes = ['/api/keno/results', '/api/keno/history', '/api/keno/rounds'];
   try {
-    for (const route of routes) {
-      const d = await api(route);
-      if (!d || d.success === false) continue;
-      const rows = Array.isArray(d) ? d : (d.results || d.history || d.rounds || d.data || d.draws || []);
-      if (!Array.isArray(rows) || !rows.length) continue;
-      const normalized = rows.map(normalizeServerDraw).filter(Boolean);
-      if (!normalized.length) continue;
-      const c = $('results-container');
-      // Server data becomes the authoritative list; remove preview rows and rebuild newest-first.
-      c.innerHTML = '';
-      serverResultKeys.clear();
-      normalized.slice(0,100).forEach(row => {
-        const key = String(row.id);
-        if (serverResultKeys.has(key)) return;
-        serverResultKeys.add(key);
-        addResultRecord(row.id, row.balls, formatResultTime(row.time), 'server');
-        drawStatsHistory.push(row.balls);
-      });
-      if (drawStatsHistory.length > 100) drawStatsHistory = drawStatsHistory.slice(-100);
-      updateLiveStatistics();
-      const status = $('results-sync-status');
-      if (status) status.textContent = '';
-      return;
-    }
-    const status = $('results-sync-status');
-    if (status) status.textContent = '';
-  } catch (e) {
-    const status = $('results-sync-status');
-    if (status) status.textContent = '';
-  } finally {
-    resultSyncBusy = false;
-  }
-}
+    const d = await api('/api/keno/results?limit=50');
+    if (!d || !d.success || !d.results) return;
 
-function formatResultTime(value) {
-  if (!value) return '';
-  const d = typeof value === 'number' ? new Date(value < 1e12 ? value * 1000 : value) : new Date(value);
-  return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-}
+    const c = $('results-container');
+    c.innerHTML = '';
 
-function addResultRecord(id, balls, timeStr, source = 'server') {
-  if (source !== 'server') return;
-  const container = $('results-container');
-  const card = document.createElement('div');
-  card.className = 'result-row-card';
-  const time = timeStr || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  card.innerHTML = `
-    <div class="res-draw-col">
-      <div style="font-weight:bold;font-size:11px;color:var(--accent-green-bright);display:flex;align-items:center;gap:3px;">
-        <svg class="verified-icon" viewBox="0 0 24 24" aria-label="Verified"><path d="M12 1.4 3.2 4.7v6.1c0 5.5 3.7 9.7 8.8 11.8 5.1-2.1 8.8-6.3 8.8-11.8V4.7L12 1.4Z"/><path d="m7.2 11.9 3.1 3.1 6.7-7" fill="none" stroke="#e9fff3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        ${esc(id)}
-      </div>
-      <div style="font-size:9px;color:var(--text-muted);">${esc(time)}</div>
-    </div>
-    <div class="res-balls-grid">
-      ${balls.map(n => `<div class="res-mini-ball">${n}</div>`).join('')}
-    </div>
-  `;
-  container.prepend(card);
+    d.results.forEach(row => {
+      const card = document.createElement('div');
+      card.className = 'result-row-card';
+      const timeStr = row.time ? new Date(row.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      
+      card.innerHTML = `
+        <div class="res-draw-col">
+          <div style="font-weight:bold;font-size:11px;color:var(--accent-green-bright);display:flex;align-items:center;gap:3px;">
+            <svg class="verified-icon" viewBox="0 0 24 24" aria-label="Verified"><path d="M12 1.4 3.2 4.7v6.1c0 5.5 3.7 9.7 8.8 11.8 5.1-2.1 8.8-6.3 8.8-11.8V4.7L12 1.4Z"/><path d="m7.2 11.9 3.1 3.1 6.7-7" fill="none" stroke="#e9fff3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            #${esc(row.id)}
+          </div>
+          <div style="font-size:9px;color:var(--text-muted);">${esc(timeStr)}</div>
+          <a href="${API}/api/keno/verify/${row.id}" target="_blank" style="font-size:8px;color:var(--accent-cyan);text-decoration:none;margin-top:4px;">
+            Verify Proof ↗
+          </a>
+        </div>
+        <div class="res-balls-grid">
+          ${row.numbers.map(n => `<div class="res-mini-ball">${n}</div>`).join('')}
+        </div>
+      `;
+      c.appendChild(card);
+    });
+
+    drawStatsHistory = d.results.map(r => r.numbers);
+    updateLiveStatistics();
+  } catch (e) {}
 }
 
 function renderHistoryView() {
@@ -1206,23 +1246,33 @@ function renderHistoryView() {
   `).join('');
 }
 
+// ---------------- 13. Mixed Real & Demo Leaders ----------------
 async function loadPublicLeaders() {
-  const d = await api('/api/public/feed?game=JetX');
-  if (d && d.success && d.wins) {
-    $('leaders-tbody').innerHTML = d.wins.length ? d.wins.map((w, i) => `
-      <tr><td>${i + 1}</td><td>${esc(w.user)}</td><td>${esc(w.game)}</td><td style="color:var(--accent-green-bright);font-weight:bold;">+${Number(w.win).toFixed(0)} ETB</td></tr>
-    `).join('') : '<tr><td colspan="4" class="empty-note">No wins recorded yet</td></tr>';
-  } else {
-    $('leaders-tbody').innerHTML = `
-      <tr><td>1</td><td>b***w</td><td>Keno</td><td style="color:var(--accent-green-bright);font-weight:bold;">+30,000 ETB</td></tr>
-      <tr><td>2</td><td>y***o</td><td>Keno</td><td style="color:var(--accent-green-bright);font-weight:bold;">+30,000 ETB</td></tr>
-      <tr><td>3</td><td>i***s</td><td>Keno</td><td style="color:var(--accent-green-bright);font-weight:bold;">+20,000 ETB</td></tr>
-      <tr><td>4</td><td>w***j</td><td>Keno</td><td style="color:var(--accent-green-bright);font-weight:bold;">+15,000 ETB</td></tr>
-    `;
-  }
+  const d = await api('/api/public/feed');
+  const realWins = (d && d.success && Array.isArray(d.wins)) ? d.wins : [];
+  
+  // እውነተኛዎቹን ከ Demo አሸናፊዎች ጋር ቀላቅሎ ያሳያል
+  const demoFallback = [
+    { user: 'b***w', game: 'Keno', win: 30000 },
+    { user: 'y***o', game: 'Keno', win: 24500 },
+    { user: 'i***s', game: 'Keno', win: 18000 },
+    { user: 'w***j', game: 'Keno', win: 12000 },
+    { user: 'k***e', game: 'Keno', win: 8500 }
+  ];
+
+  const merged = [...realWins, ...demoFallback].slice(0, 10);
+
+  $('leaders-tbody').innerHTML = merged.map((w, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${esc(w.user)}</td>
+      <td>${esc(w.game || 'Keno')}</td>
+      <td style="color:var(--accent-green-bright);font-weight:bold;">+${Number(w.win).toLocaleString()} ETB</td>
+    </tr>
+  `).join('');
 }
 
-// ---------------- Toast & Tabs ----------------
+// ---------------- 14. UI Tabs & Modals ----------------
 let toastTimeout = null;
 function showToast(msg, type = 'error') {
   $('toast-box').className = 'toast-box ' + type;
@@ -1241,6 +1291,7 @@ function switchTab(id, el) {
   const v = $('view-' + id);
   if (v) v.classList.add('active');
   if (id === 'leaders') loadPublicLeaders();
+  if (id === 'results') syncServerResults();
 }
 
 function openSupport() { postParent({ type: 'OPEN_SUPPORT' }); }
@@ -1252,14 +1303,6 @@ function exitToLobby() {
   postParent({ type: 'EXIT_GAME' });
 }
 
-// ---------------- Rules & Dynamic Paytable Modal ----------------
-async function initPaytable() {
-  const d = await api('/api/keno/paytable');
-  if (d && d.success && d.paytable) {
-    paytable = d.paytable;
-    updatePossibleWin();
-  }
-}
 function openRulesModal() { $('rules-modal').style.display = 'flex'; switchModalTab('rules'); }
 function closeRulesModal() { $('rules-modal').style.display = 'none'; }
 function switchModalTab(tab) {
@@ -1269,7 +1312,7 @@ function switchModalTab(tab) {
   if (tab === 'rules') {
     c.innerHTML = `
       <h4 style="color:#fff;margin-bottom:4px;">How to play</h4>
-      <p style="margin-bottom:8px;">Choose 1 to 10 numbers from 1 to 80. Each round runs 24/7 on an 80-second continuous cycle (60s betting + 20s draw). 20 numbers are drawn by certified server RNG.</p>
+      <p style="margin-bottom:8px;">Choose 1 to 10 numbers from 1 to 80. Each round runs 24/7 on an 80-second continuous cycle (60s betting + 20s draw). 20 numbers are drawn by certified provably fair server RNG.</p>
       <h4 style="color:#fff;margin-bottom:4px;">Limits</h4>
       <p style="margin-bottom:8px;">Bet ${MIN_BET} – ${MAX_BET} ETB. Maximum payout per bet ${MAX_PAYOUT.toLocaleString()} ETB.</p>
     `;
@@ -1293,22 +1336,27 @@ document.addEventListener('pointerdown', () => {
   try { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) {}
 }, { once: true });
 
+// Startup
 window.addEventListener('DOMContentLoaded', () => {
-  const { roundId } = getGlobalRound();
-  $('lbl-round-id').textContent = roundId;
-  dynamicAllCount = computeBaseRoundBets(roundId);
+  const round = getGlobalRound();
+  $('lbl-round-id').textContent = round.roundId;
+  dynamicAllCount = computeBaseRoundBets(round.roundId);
   $('lbl-all-count').textContent = dynamicAllCount.toLocaleString();
 
+  syncServerClock();
   buildGrid();
   setBet(4);
   initPlayerFeed();
-  initPrePopulatedResults();
-  updateLiveStatistics();
   renderHistoryView();
   loadPublicLeaders();
   syncServerResults();
-  setInterval(syncServerResults, 15000);
 });
 </script>
+
+
+
+
+
+
 </body>
 </html>
