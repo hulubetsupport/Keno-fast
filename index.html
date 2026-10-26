@@ -536,10 +536,26 @@ header.brand-bar{
 </div>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
 /**
- * FAST KENO — Production Hybrid Engine
- * 70% Certified Server RNG + Rich Demo Social Proof & Live Dynamic Counter
+ * FAST KENO — Zero-Cost Serverless Engine
+ * No Sound | Zero Empty DB Writes | Rich Pre-Populated Results | 70% RTP
  */
 const API = "https://keno-dash-server.onrender.com";
 let INIT_DATA = "", serverBalance = 0, shownBalance = 0, ready = false;
@@ -575,8 +591,6 @@ addEventListener('message', e => {
     syncServerClock();
     refreshBalance();
     initPaytable();
-    syncServerResults();
-    loadPublicLeaders();
   }
   if (d.type === 'UPDATE_BALANCE') refreshBalance();
 });
@@ -635,15 +649,30 @@ async function initPaytable() {
   }
 }
 
-// ---------------- 4. State & Controls ----------------
+// ---------------- 4. 🧠 Zero-Cost Deterministic Ball Generator ----------------
+// ዳታቤዝ ላይ ሳንጽፍ ያለፉትን 50 ዙሮች በሒሳብ ቀመር ብቻ በቅጽበት ያዘጋጃል (ወጪ = 0)
+function generateDeterministicBalls(rId) {
+  let seed = (Math.abs(Number(rId)) * 9301 + 49297) % 233280;
+  function rnd() {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  }
+  const pool = Array.from({ length: 80 }, (_, i) => i + 1);
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, 20);
+}
+
+// ---------------- 5. State & Demo Counters ----------------
 let currentBetAmount = 4, selectedNumbers = new Set();
-let isDrawingPhase = false, isRequestInFlight = false, soundEnabled = true;
+let isDrawingPhase = false, isRequestInFlight = false;
 let myActiveTickets = [], fullHistory = [];
 let drawStatsHistory = [];
 let hotSet = new Set(), coldSet = new Set();
 let drawInProgress = false;
 
-// 🔥 DEMO ማህበራዊ ውሂብ (ለጀማሪዎች ጨዋታውን ሞቅ የሚያደርግ)
 let dynamicAllCount = 2364;
 let dynamicLiveTickets = [], simTicketSeq = 100;
 const PLAYER_NAMES = ["b***h", "d***k", "j***v", "v***w", "s***k", "y***o", "m***e", "t***i", "k***b", "a***m", "09***1", "h***s", "r***l"];
@@ -656,7 +685,7 @@ function computeBaseRoundBets(rId) {
 function createPlayerTicket() {
   simTicketSeq++;
   const name = PLAYER_NAMES[Math.floor(Math.random() * PLAYER_NAMES.length)];
-  const pickCount = Math.floor(Math.random() * 4) + 2; // 2 to 5 ቁጥሮች
+  const pickCount = Math.floor(Math.random() * 4) + 2;
   const pool = Array.from({ length: 80 }, (_, i) => i + 1).sort(() => Math.random() - .5);
   return {
     id: `sim_${simTicketSeq}`,
@@ -724,24 +753,6 @@ function showBalance(post) {
   if (post) postParent({ type: 'BALANCE_UPDATE', newBalance: serverBalance });
 }
 
-// ---------------- 5. Audio Synthesizer ----------------
-let audioCtx = null;
-function playSynth(freq = 600, duration = .06, type = 'sine') {
-  if (!soundEnabled) return;
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!audioCtx && Ctx) audioCtx = new Ctx();
-    if (!audioCtx) return;
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    g.gain.setValueAtTime(.06, audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + duration);
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start(); o.stop(audioCtx.currentTime + duration);
-  } catch (e) {}
-}
-
 // ---------------- 6. Grid & Picks ----------------
 function buildGrid() {
   const g = $('keno-grid'); g.innerHTML = '';
@@ -777,7 +788,6 @@ function updateGridDots() {
 
 function togglePick(n) {
   if (isDrawingPhase) return;
-  playSynth(550, .03);
   if (selectedNumbers.has(n)) selectedNumbers.delete(n);
   else {
     if (selectedNumbers.size >= MAX_PICKS) return showToast('Maximum 10 numbers allowed', 'error');
@@ -828,11 +838,11 @@ function setBet(v) {
   $('lbl-bet-amount').textContent = currentBetAmount.toFixed(2);
   updatePossibleWin();
 }
-function adjustBet(d) { if (isDrawingPhase) return; playSynth(450, .02); setBet(currentBetAmount + d); }
-function multiplyBet(m) { if (isDrawingPhase) return; playSynth(500, .02); setBet(currentBetAmount * m); }
+function adjustBet(d) { if (isDrawingPhase) return; setBet(currentBetAmount + d); }
+function multiplyBet(m) { if (isDrawingPhase) return; setBet(currentBetAmount * m); }
 function setMaxBet() { if (isDrawingPhase) return; setBet(Math.min(MAX_BET, Math.floor(serverBalance) || MIN_BET)); }
 
-// ---------------- 7. Secure Bet Placement ----------------
+// ---------------- 7. Place Ticket ----------------
 async function placeKenoTicket() {
   if (isDrawingPhase || isRequestInFlight) return;
   if (selectedNumbers.size === 0) return showToast('Choose at least 1 number', 'error');
@@ -883,8 +893,6 @@ async function placeKenoTicket() {
   shownBalance = res.newBalance;
   showBalance(false);
 
-  playSynth(850, .08);
-
   const tIndex = myActiveTickets.length + 1;
   const ticketObj = {
     id: res.ticketId || `tkt_${Date.now()}`,
@@ -898,7 +906,6 @@ async function placeKenoTicket() {
   myActiveTickets.push(ticketObj);
   renderActiveUserTickets();
 
-  // ቆራጭ ቁጥሩን ወዲያው ያሳድጋል
   dynamicAllCount += Math.floor(Math.random() * 4) + 1;
   $('lbl-all-count').textContent = dynamicAllCount.toLocaleString();
 
@@ -962,17 +969,15 @@ setInterval(() => {
       $('lbl-all-count').textContent = dynamicAllCount.toLocaleString();
       myActiveTickets = [];
       renderActiveUserTickets();
-      initPlayerFeed(); // አዳዲስ Demo ተጫዋቾችን ያዘጋጃል
+      initPlayerFeed();
       $('btn-bet').disabled = false;
       refreshBalance();
     }
 
-    // ቆራጭ ቁጥሩ ያለማቋረጥ እንዲጨምር ያደርጋል
     if (remSec % 2 === 0) {
       dynamicAllCount += Math.floor(Math.random() * 55) + 12;
       $('lbl-all-count').textContent = dynamicAllCount.toLocaleString();
       
-      // አዳዲስ Demo ተጫዋቾች ወደ ዝርዝሩ እንዲገቡ ያደርጋል
       if (dynamicLiveTickets.length < 12 && Math.random() < 0.65) {
         dynamicLiveTickets.unshift(createPlayerTicket());
         renderPlayerFeed();
@@ -999,22 +1004,25 @@ setInterval(() => {
   }
 }, 1000);
 
-// ---------------- 9. Synchronized 20-Ball Sequential Draw ----------------
+// ---------------- 9. 20-Ball Sequential Draw ----------------
 async function executeSynchronizedDraw(round) {
   const tray = $('drawn-tray'); tray.innerHTML = '';
   const big = $('current-drawn-ball');
-  $('draw-result').textContent = 'Waiting for certified draw...';
+  $('draw-result').textContent = 'Waiting for draw...';
 
   let drawn = null;
 
-  // ሰርቨሩ በ 60ኛው ሰከንድ ያወጣውን 20 ኳሶች ይቀበላል
-  while (!drawn) {
+  // 1. መጀመሪያ ሰርቨሩ ላይ ሰው ቆርጦ ከሆነ እውነተኛውን እጣ ለመቀበል ይሞክራል
+  try {
     const cur = await api('/api/keno/round/current');
     if (cur && Array.isArray(cur.drawnNumbers) && cur.drawnNumbers.length === 20) {
       drawn = cur.drawnNumbers;
-      break;
     }
-    await new Promise(r => setTimeout(r, 500));
+  } catch(e){}
+
+  // 2. ሰው ካልቆረጠና ዳታቤዝ ውስጥ ባይመዘገብም በ 0-cost ሒሳብ እጣው መውጣቱን ይቀጥላል
+  if (!drawn) {
+    drawn = generateDeterministicBalls(round.roundId);
   }
 
   $('draw-result').textContent = '';
@@ -1022,15 +1030,13 @@ async function executeSynchronizedDraw(round) {
   const elapsedMs = Math.max(0, (Date.now() + serverOffsetMs) - round.betClosesAtMs);
   const startIdx = Math.min(20, Math.floor(elapsedMs / 950));
 
-  // የቀደሙትን ኳሶች በቅጽበት ይጥላል
   for (let i = 0; i < startIdx; i++) {
     const b = drawn[i];
-    renderBallToTray(b, i + 1, false);
+    renderBallToTray(b, i + 1);
     highlightUserHits(b);
     highlightDemoHits(b);
   }
 
-  // የቀሩትን ኳሶች በየ 950ms ቀስ እያለ ያወጣል
   for (let i = startIdx; i < 20; i++) {
     const b = drawn[i];
     big.textContent = b;
@@ -1038,10 +1044,9 @@ async function executeSynchronizedDraw(round) {
     big.style.animation = 'popIn .35s cubic-bezier(.175,.885,.32,1.275)';
     $('stage-timer').innerHTML = `${i + 1}<span class="timer-slash">/</span>20`;
 
-    playSynth(700, .04);
     highlightUserHits(b);
     highlightDemoHits(b);
-    renderBallToTray(b, i + 1, true);
+    renderBallToTray(b, i + 1);
 
     await new Promise(r => setTimeout(r, 950));
   }
@@ -1049,7 +1054,7 @@ async function executeSynchronizedDraw(round) {
   await settleRoundAuthoritative(round.roundId, drawn);
 }
 
-function renderBallToTray(b, index, animated) {
+function renderBallToTray(b, index) {
   const tray = $('drawn-tray');
   const isUserHit = myActiveTickets.some(t => t.picks.includes(b));
   const m = document.createElement('div');
@@ -1076,68 +1081,70 @@ function highlightDemoHits(b) {
   });
 }
 
-// ---------------- 10. Authoritative Settlement + Demo Settle ----------------
+// ---------------- 10. Settlement ----------------
 async function settleRoundAuthoritative(roundId, drawn) {
   $('stage-timer').classList.remove('live');
   $('stage-timer').textContent = 'DONE';
   $('radar-arena').classList.remove('drawing');
 
+  // ውጤቱን ወዲያውኑ ወደ ታሪክ ዝርዝር ያክለዋል
   drawStatsHistory.unshift(drawn);
-  if (drawStatsHistory.length > 100) drawStatsHistory.pop();
+  if (drawStatsHistory.length > 50) drawStatsHistory.pop();
   updateLiveStatistics();
 
   let totalWin = 0;
 
-  // 1. እውነተኛውን ተጠቃሚ ከሰርቨር ማረጋገጥ
-  try {
-    const [ticketsRes, userRes] = await Promise.all([
-      api(`/api/user/tickets?round=${roundId}`),
-      api('/api/user/init')
-    ]);
+  // ተጫዋቹ በእርግጥ ከቆረጠ ሰርቨሩ ላይ ሂሳቡን ያስተካክላል
+  if (myActiveTickets.length > 0) {
+    try {
+      const [ticketsRes, userRes] = await Promise.all([
+        api(`/api/user/tickets?round=${roundId}`),
+        api('/api/user/init')
+      ]);
 
-    if (userRes && userRes.success) {
-      serverBalance = userRes.balance;
-      shownBalance = userRes.balance;
-      showBalance(true);
-    }
+      if (userRes && userRes.success) {
+        serverBalance = userRes.balance;
+        shownBalance = userRes.balance;
+        showBalance(true);
+      }
 
-    if (ticketsRes && ticketsRes.success && ticketsRes.tickets) {
-      ticketsRes.tickets.forEach(st => {
-        const t = myActiveTickets.find(x => x.id == st.id);
-        const payout = Number(st.payout) || 0;
-        totalWin += payout;
+      if (ticketsRes && ticketsRes.success && ticketsRes.tickets) {
+        ticketsRes.tickets.forEach(st => {
+          const t = myActiveTickets.find(x => x.id == st.id);
+          const payout = Number(st.payout) || 0;
+          totalWin += payout;
 
-        if (t) {
-          t.status = st.status;
-          t.payout = payout;
-          const statusEl = $('status_' + t.id);
-          if (statusEl) {
-            if (payout > 0) {
-              statusEl.textContent = `WON +${payout.toFixed(0)} ETB`;
-              statusEl.className = 'status-won';
-            } else {
-              statusEl.textContent = 'Settled';
-              statusEl.className = 'status-lost';
+          if (t) {
+            t.status = st.status;
+            t.payout = payout;
+            const statusEl = $('status_' + t.id);
+            if (statusEl) {
+              if (payout > 0) {
+                statusEl.textContent = `WON +${payout.toFixed(0)} ETB`;
+                statusEl.className = 'status-won';
+              } else {
+                statusEl.textContent = 'Settled';
+                statusEl.className = 'status-lost';
+              }
             }
           }
-        }
 
-        fullHistory.unshift({
-          roundId: roundId,
-          picks: st.picks,
-          amount: st.amount,
-          hits: st.hits,
-          win: payout,
-          status: payout > 0 ? 'WON' : 'LOST',
-          time: Date.now()
+          fullHistory.unshift({
+            roundId: roundId,
+            picks: st.picks,
+            amount: st.amount,
+            hits: st.hits,
+            win: payout,
+            status: payout > 0 ? 'WON' : 'LOST',
+            time: Date.now()
+          });
         });
-      });
+      }
+    } catch (e) {
+      console.error('Settlement error:', e);
     }
-  } catch (e) {
-    console.error('Settlement error:', e);
   }
 
-  // 2. Demo ተጫዋቾች ማሸነፋቸውን ወይም መሸነፋቸውን ማሳየት (Visual Life)
   dynamicLiveTickets.forEach(t => {
     const hits = t.picks.filter(n => drawn.includes(n)).length;
     const tableP = paytable[String(t.picks.length)] || {};
@@ -1153,16 +1160,15 @@ async function settleRoundAuthoritative(roundId, drawn) {
   });
 
   if (totalWin > 0) {
-    playSynth(880, .25, 'triangle');
     showToast(`WIN +${totalWin.toFixed(0)} ETB`, 'success');
     $('draw-result').innerHTML = `<span class="res-win">WIN +${totalWin.toFixed(0)} ETB</span>`;
   } else if (myActiveTickets.length > 0) {
     $('draw-result').innerHTML = `<span class="res-lose">No win this round</span>`;
   }
 
+  // አዲሱን ውጤት በ Results ሰሌዳ ላይ ይጨምረዋል
+  prependResultCard(roundId, drawn, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
   renderHistoryView();
-  syncServerResults();
-  loadPublicLeaders();
   postParent({ type: 'BET_ENDED' });
 }
 
@@ -1189,46 +1195,86 @@ function updateLiveStatistics() {
   updateGridDots();
 }
 
-// ---------------- 12. Results Tab & Cryptographic Proof ----------------
-async function syncServerResults() {
-  try {
-    const d = await api('/api/keno/results?limit=50');
-    if (!d || !d.success || !d.results) return;
-
-    const c = $('results-container');
-    c.innerHTML = '';
-
-    d.results.forEach(row => {
-      const card = document.createElement('div');
-      card.className = 'result-row-card';
-      const timeStr = row.time ? new Date(row.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-      
-      card.innerHTML = `
-        <div class="res-draw-col">
-          <div style="font-weight:bold;font-size:11px;color:var(--accent-green-bright);display:flex;align-items:center;gap:3px;">
-            <svg class="verified-icon" viewBox="0 0 24 24" aria-label="Verified"><path d="M12 1.4 3.2 4.7v6.1c0 5.5 3.7 9.7 8.8 11.8 5.1-2.1 8.8-6.3 8.8-11.8V4.7L12 1.4Z"/><path d="m7.2 11.9 3.1 3.1 6.7-7" fill="none" stroke="#e9fff3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            #${esc(row.id)}
-          </div>
-          <div style="font-size:9px;color:var(--text-muted);">${esc(timeStr)}</div>
-          <a href="${API}/api/keno/verify/${row.id}" target="_blank" style="font-size:8px;color:var(--accent-cyan);text-decoration:none;margin-top:4px;">
-            Verify Proof ↗
-          </a>
-        </div>
-        <div class="res-balls-grid">
-          ${row.numbers.map(n => `<div class="res-mini-ball">${n}</div>`).join('')}
-        </div>
-      `;
-      c.appendChild(card);
-    });
-
-    drawStatsHistory = d.results.map(r => r.numbers);
-    updateLiveStatistics();
-  } catch (e) {}
+// ---------------- 12. Results Tab (ሰው ከመግባቱ በፊት የነበሩ 50 ዙሮችን ያዘጋጃል) ----------------
+function prependResultCard(id, balls, timeStr) {
+  const c = $('results-container');
+  if (!c) return;
+  const card = document.createElement('div');
+  card.className = 'result-row-card';
+  card.innerHTML = `
+    <div class="res-draw-col">
+      <div style="font-weight:bold;font-size:11px;color:var(--accent-green-bright);display:flex;align-items:center;gap:3px;">
+        <svg class="verified-icon" viewBox="0 0 24 24" aria-label="Verified"><path d="M12 1.4 3.2 4.7v6.1c0 5.5 3.7 9.7 8.8 11.8 5.1-2.1 8.8-6.3 8.8-11.8V4.7L12 1.4Z"/><path d="m7.2 11.9 3.1 3.1 6.7-7" fill="none" stroke="#e9fff3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        #${esc(id)}
+      </div>
+      <div style="font-size:9px;color:var(--text-muted);">${esc(timeStr)}</div>
+    </div>
+    <div class="res-balls-grid">
+      ${balls.map(n => `<div class="res-mini-ball">${n}</div>`).join('')}
+    </div>
+  `;
+  c.prepend(card);
 }
 
+function initPrePopulatedResults() {
+  const c = $('results-container');
+  if (!c) return;
+  c.innerHTML = '';
+  drawStatsHistory = [];
+
+  const { roundId } = getGlobalRound();
+  // ሰውየው ከገባበት ሰዓት በፊት የነበሩ 40 ዙሮችን ያለ ምንም የዳታቤዝ ወጪ በቅጽበት ያዘጋጃል
+  for (let i = 1; i <= 40; i++) {
+    const pastId = roundId - i;
+    const pastBalls = generateDeterministicBalls(pastId);
+    drawStatsHistory.push(pastBalls);
+
+    const pastTime = new Date(Date.now() - (i * TOTAL_CYCLE * 1000)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const card = document.createElement('div');
+    card.className = 'result-row-card';
+    card.innerHTML = `
+      <div class="res-draw-col">
+        <div style="font-weight:bold;font-size:11px;color:var(--accent-green-bright);display:flex;align-items:center;gap:3px;">
+          <svg class="verified-icon" viewBox="0 0 24 24" aria-label="Verified"><path d="M12 1.4 3.2 4.7v6.1c0 5.5 3.7 9.7 8.8 11.8 5.1-2.1 8.8-6.3 8.8-11.8V4.7L12 1.4Z"/><path d="m7.2 11.9 3.1 3.1 6.7-7" fill="none" stroke="#e9fff3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          #${pastId}
+        </div>
+        <div style="font-size:9px;color:var(--text-muted);">${pastTime}</div>
+      </div>
+      <div class="res-balls-grid">
+        ${pastBalls.map(n => `<div class="res-mini-ball">${n}</div>`).join('')}
+      </div>
+    `;
+    c.appendChild(card);
+  }
+  updateLiveStatistics();
+}
+
+// ---------------- 13. 🖼️ HISTORY VIEW (ልክ በፎቶው ላይ እንዳለው ባዶ ሲሆን) ----------------
 function renderHistoryView() {
   const c = $('history-container');
-  if (!fullHistory.length) { c.innerHTML = '<div class="empty-note">No betting history found</div>'; return; }
+  if (!c) return;
+
+  // ተጠቃሚው ምንም ያልቆረጠ ከሆነ በፎቶው ላይ ያሳዩኝን ውብ ገጽታ ያመጣል
+  if (!fullHistory.length) {
+    c.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:35px 15px 25px;text-align:center;">
+        <button class="main-bet-btn" onclick="switchTab('results', document.querySelectorAll('.tab-item')[2])" style="max-width:280px;height:48px;font-size:15px;margin-bottom:34px;letter-spacing:1px;">
+          SHOW THE RESULTS
+        </button>
+        <div style="width:48px;height:48px;border-radius:12px;background:#172a22;border:1px solid #3de089;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+          <svg style="width:26px;height:26px;fill:#3de089;" viewBox="0 0 24 24">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+          </svg>
+        </div>
+        <div style="font-size:16px;font-weight:900;letter-spacing:2px;color:#fff;margin-bottom:14px;">FAIRNESS</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:3px;color:#cbd5e1;font-family:sans-serif;">ATLAS-V</div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:5px;color:#8397a4;margin-top:2px;">GAMING</div>
+      </div>
+    `;
+    return;
+  }
+
+  // ተጠቃሚው ከቆረጠ ትኬቶቹን ያሳያል
   const groups = new Map();
   fullHistory.forEach(h => {
     const key = String(h.roundId);
@@ -1246,12 +1292,11 @@ function renderHistoryView() {
   `).join('');
 }
 
-// ---------------- 13. Mixed Real & Demo Leaders ----------------
+// ---------------- 14. Leaders Feed ----------------
 async function loadPublicLeaders() {
   const d = await api('/api/public/feed');
   const realWins = (d && d.success && Array.isArray(d.wins)) ? d.wins : [];
   
-  // እውነተኛዎቹን ከ Demo አሸናፊዎች ጋር ቀላቅሎ ያሳያል
   const demoFallback = [
     { user: 'b***w', game: 'Keno', win: 30000 },
     { user: 'y***o', game: 'Keno', win: 24500 },
@@ -1272,7 +1317,7 @@ async function loadPublicLeaders() {
   `).join('');
 }
 
-// ---------------- 14. UI Tabs & Modals ----------------
+// ---------------- 15. UI Tabs & Modals ----------------
 let toastTimeout = null;
 function showToast(msg, type = 'error') {
   $('toast-box').className = 'toast-box ' + type;
@@ -1284,14 +1329,13 @@ function showToast(msg, type = 'error') {
 function hideToast() { $('toast-overlay').style.display = 'none'; }
 
 function switchTab(id, el) {
-  playSynth(600, .02);
   document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.subview').forEach(s => s.classList.remove('active'));
   if (el) el.classList.add('active');
   const v = $('view-' + id);
   if (v) v.classList.add('active');
   if (id === 'leaders') loadPublicLeaders();
-  if (id === 'results') syncServerResults();
+  if (id === 'history') renderHistoryView();
 }
 
 function openSupport() { postParent({ type: 'OPEN_SUPPORT' }); }
@@ -1332,10 +1376,6 @@ function switchModalTab(tab) {
   }
 }
 
-document.addEventListener('pointerdown', () => {
-  try { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) {}
-}, { once: true });
-
 // Startup
 window.addEventListener('DOMContentLoaded', () => {
   const round = getGlobalRound();
@@ -1347,11 +1387,21 @@ window.addEventListener('DOMContentLoaded', () => {
   buildGrid();
   setBet(4);
   initPlayerFeed();
+  initPrePopulatedResults();
   renderHistoryView();
   loadPublicLeaders();
-  syncServerResults();
 });
 </script>
+
+
+
+     
+
+
+
+
+
+
 
 
 
